@@ -320,42 +320,58 @@ function fallbackAnalysis() {
 
 function fallbackReport(analysis = fallbackAnalysis()) {
   return {
-    title: "你的风格派人格：空间炼金术师",
-    subtitle: "你不是在画一个物体，而是在给现实拆骨。",
-    artistType: "Rietveld-Mondrian",
+    persona: "范德莱克｜色面叙事型",
+    match_score: 86,
+    why: [
+      "画面保留了明显的色块叙事痕迹，颜色像独立角色，而不是被线条完全支配。",
+      "白色留白承担了主动空间的作用，让色面之间产生呼吸和停顿。",
+      "抽象元素仍暗示一个被简化过的现实来源，适合从终稿向具象草图逆推。",
+    ],
+    work_comment: {
+      structure: "结构由横竖关系维持，但并不追求绝对网格化，更像从对象中提炼出的平面秩序。",
+      color: "色彩数量克制，色块彼此独立，接近范德莱克强调的色面自主性。",
+      abstraction: "抽象程度较高，但并未完全切断与现实对象的联系。",
+      reverse_potential: "适合继续向对象化色面、结构草图和具象素描回退。",
+    },
+    next_interaction: "可以尝试减少一种颜色，强化白色留白的节奏，让主体轮廓在更少的色面中显现。",
+    dimensions: [
+      { label: "秩序", value: 74 },
+      { label: "动态", value: 42 },
+      { label: "空间", value: 68 },
+      { label: "色面", value: 91 },
+      { label: "比例", value: 63 },
+      { label: "叙事", value: 82 },
+    ],
+    artistMatches: [
+      { name: "蒙德里安", score: 70, trait: "秩序平衡", note: "有水平与垂直的纪律，但色彩还没有完全服从网格。" },
+      { name: "杜斯伯格", score: 38, trait: "动态突破", note: "运动张力较弱，画面更安静，不太像他的斜线宣言。" },
+      { name: "里特维德", score: 58, trait: "空间建构", note: "结构感存在，但还没有明显进入家具或建筑空间。" },
+      { name: "范德莱克", score: 86, trait: "色面叙事", note: "色块像从具象对象中切下来的叙事碎片。" },
+      { name: "范通格洛", score: 61, trait: "比例理性", note: "比例关系清楚，但数学冷感不是最主要气质。" },
+    ],
+    title: "你是范德莱克｜色面叙事型",
+    subtitle: "色块没有被关进线里，它们自己站在白色空间中。",
+    artistType: "Van der Leck",
     matchPercent: 86,
     mbti: {
-      code: "INTJ-A",
-      name: "秩序型空间诗人",
-      summary: "你倾向于先建立结构，再允许颜色与材料进入。你不是逃离现实，而是把现实拆成可重新安放的关系。",
+      code: "C-SN",
+      name: "色面叙事型",
+      summary: "你更像把现实提炼成色块的人：保留故事的影子，但让颜色自己说话。",
     },
     primaryArtist: {
-      name: "赫里特·里特费尔德",
-      reason: "画面最强的不是颜色，而是空间如何被横竖关系支撑起来。这接近里特费尔德把物体、墙面和空间拆成独立构件的方式。",
+      name: "范德莱克",
+      reason: "画面中的色块有独立叙事性，白色空间也不是空白，而是让颜色发生的场。",
     },
-    artistMatches: [
-      { name: "里特费尔德", score: 86, trait: "空间结构", note: "像一个还没被命名的结构，先把支撑关系亮出来。" },
-      { name: "蒙德里安", score: 78, trait: "纯粹秩序", note: "你有清除偶然性的冲动，线条像一套安静的戒律。" },
-      { name: "范·杜斯堡", score: 52, trait: "动态宣言", note: "能量存在，但仍被水平与垂直管束着。" },
-      { name: "范·德·莱克", score: 64, trait: "色彩自主", note: "色块不是填色，它们像独立站在白色空间中的小型事件。" },
-    ],
-    dimensions: [
-      { label: "秩序", value: 88 },
-      { label: "材料", value: 72 },
-      { label: "色彩", value: 64 },
-      { label: "运动", value: 46 },
-      { label: "神秘性", value: 76 },
-    ],
     stageCaptions: {
       original: "这里还不是作品，只是一块尚未被命名的现实碎片。",
-      stage1: "第一张像蒙德里安的清晨：对象退场，只剩关系接受审判。",
-      stage2: "第二张开始像工坊里的里特费尔德，结构长出触感，平面想变成空间。",
-      stage3: "第三张把显影的痕迹带回现实，让光线替材料作证。",
+      stage1: "具象素描把被隐藏的对象重新召回，但仍保持概括。",
+      stage2: "结构草图把对象拆成支撑、体量和空隙。",
+      stage3: "对象化色面图让现实来源第一次从色块中露出轮廓。",
     },
     narrative:
-      "如果把这张图当作一场人格测试，你的答案不是“像什么”，而是“怎样组织世界”。你接近里特费尔德：相信结构必须诚实地站出来；也带着蒙德里安式的洁癖，试图把偶然从画面里擦掉。色彩在这里不是糖衣，而是空间中的坐标。它们安静，却不服从。",
-    quote: "空间不在这里结束，材料只是空间的句号。",
-    closing: "你的艺术家人格不是浪漫的涂抹者，而是把现实拆开、再让它重新站立的人。",
+      "你的画面不像在寻找绝对秩序，而像在保留一个被压缩过的故事。范德莱克会喜欢这种状态：对象还没有消失，只是被拆成了几个固执的色面。白色不是背景，而是让颜色呼吸的空间。",
+    quote: "白色不是空，是所有颜色存在的可能性。",
+    closing: "你的下一步不是加细节，而是让每一个色块更有理由地停在那里。",
   };
 }
 
@@ -424,13 +440,13 @@ function buildImagePrompt(prompt, title) {
 硬性约束：
 1. 必须从语义说明书中的 selected_source、element_mapping、prompt_base、must_preserve 出发。
 2. 生成结果必须能看出与原始抽象图之间的构图对应关系，不能生成一个无关的新物体或新场景。
-3. 画面里绝对不能出现任何文字、字母、数字、符号、标牌、说明标签、签名、水印、logo。
+3. 画面里绝对不能出现任何文字、字母、数字、符号、标牌、说明标签、签名、水印、logo、印刷图案、可读字符、伪文字、涂鸦文字。
 4. 不要积木、乐高、玩具砖、拼装玩具或儿童玩具。
 5. 不要默认生成椅子、红蓝椅、家具或室内设计物；只有当语义说明书的 selected_source 明确选择这类对象时才可以生成。
 
 ${prompt}
 
-画面要求：4:3 横构图，展览级审美，构图清晰。纯图像，无文字，无字母，无数字，无符号，无标牌，无签名，无水印，无 UI，无边框。`;
+画面要求：4:3 横构图，展览级审美，构图清晰。纯图像，无文字，无字母，无数字，无符号，无标牌，无说明标签，无签名，无水印，无 UI，无边框，无任何可读字符。`;
 }
 
 async function generateOne(prompt, title) {
@@ -438,7 +454,7 @@ async function generateOne(prompt, title) {
     model: imageModel,
     prompt: buildImagePrompt(prompt, title),
     negative_prompt:
-      "text, letters, numbers, symbols, typography, handwriting, caption, label, sign, signage, watermark, logo, signature, UI, interface, frame, border, lego, building blocks, toy bricks, toy, default chair, chair, red blue chair, furniture, unrelated object, unrelated scene, blurry, low quality, bad anatomy",
+      "text, letters, words, numbers, symbols, typography, handwriting, calligraphy, caption, label, labels, annotation, annotations, sign, signage, poster, stamp, watermark, logo, signature, readable characters, pseudo text, gibberish text, UI, interface, frame, border, lego, building blocks, toy bricks, toy, default chair, chair, red blue chair, furniture, unrelated object, unrelated scene, blurry, low quality, bad anatomy",
     image_size: "1024x768",
     batch_size: 1,
     num_inference_steps: 20,
@@ -488,7 +504,7 @@ async function generateStage(req, res) {
 
 function buildReportPrompt(analysis, stages) {
   return `
-请为一个“从抽象图到真实世界”的交互展示生成一份中文艺术家人格测试报告。
+你是风格派互动展的讲解员。请根据作品分析结果，为用户匹配一个“风格派大师人格”。语气要像博物馆互动装置：友好、准确、有启发，不要像考试打分。
 
 视觉分析：
 ${JSON.stringify(analysis, null, 2)}
@@ -496,27 +512,56 @@ ${JSON.stringify(analysis, null, 2)}
 生成链路：
 ${JSON.stringify(stages, null, 2)}
 
-要求：
-1. 报告要像“测出你是哪一个艺术家了”的 MBTI 报告，不要像普通策展说明。
-2. 语言要有艺术性、幽默感、人格洞察和画面感，可以犀利一点，但不要空泛。
-3. 必须从以下四位风格派相关艺术家中选择主型和副型：皮特·蒙德里安、特奥·范·杜斯堡、赫里特·里特费尔德、巴特·范·德·莱克。
-4. 明确写出流程是：第4张抽象终稿 -> 中间语义说明书 -> 第3张对象化色面图 -> 第2张结构草图 -> 第1张具象素描。注意后三张图不是继续看图生成，而是都基于同一份中间语义说明书进行三次不同抽象程度的转译。
-5. 不要出现积木、乐高、玩具砖、拼装玩具等解释。
-6. 不要编造模型技术细节，不要说自己看不到图片。
-4. 严格返回 JSON，不要 Markdown。
+候选人格：
+1. 蒙德里安｜秩序平衡型：重视水平/垂直、纯粹关系、非对称平衡、克制用色。
+2. 杜斯伯格｜动态突破型：接受斜线、速度感、构成冲突和更强的运动张力。
+3. 里特维德｜空间建构型：把平面原则转入家具、建筑、结构和空间关系。
+4. 范德莱克｜色面叙事型：从具象对象出发，用平面色块保留叙事痕迹。
+5. 范通格洛｜比例理性型：偏向数学关系、比例秩序、冷静的结构推演。
 
-艺术家参考：
-- 蒙德里安：禁欲、内省、追求纯粹关系、水平线和垂直线、三原色、神智学、排除自然偶然性。典型语气：“你看到的不是颜色，是关系。”
-- 范·杜斯堡：激进组织者，风格派传播者，提出元素主义和斜线，热爱建筑、机器、钢铁玻璃混凝土，认为线、色彩、平面比自然对象更具体。
-- 里特费尔德：沉默精准的手艺人与建筑家具设计者，红蓝椅、施罗德住宅，强调结构诚实、材料如实呈现、空间由物体决定。
-- 范·德·莱克：固执独行的色彩派，染色玻璃与纺织背景，强调白色不是空，色彩不应被黑线监禁，色块是自由个体。
+要求：
+1. 必须且只能匹配一个主人格，persona 必须从上面五个候选中选择，格式为“艺术家｜类型”。
+2. 输出要像 MBTI 报告，有多个维度数据，友好、准确、有启发，不要像考试打分。
+3. 根据 image_summary、formal_elements、candidate_sources、selected_source、element_mapping 和 generation_constraints 判断。
+4. 不要出现积木、乐高、玩具砖、拼装玩具等解释。
+5. 不要编造模型技术细节，不要说自己看不到图片。
+6. 严格返回 JSON，不要 Markdown。
 
 JSON 字段：
 {
-  "title": "艺术家人格报告标题，例如：你是里特费尔德型空间炼金术师",
-  "subtitle": "一句有趣副标题",
-  "artistType": "主艺术家-副艺术家，例如 Rietveld-Mondrian",
-  "matchPercent": 0-100,
+  "persona": "",
+  "match_score": 0,
+  "why": ["", "", ""],
+  "work_comment": {
+    "structure": "",
+    "color": "",
+    "abstraction": "",
+    "reverse_potential": ""
+  },
+  "next_interaction": "",
+  "dimensions": [
+    { "label": "秩序", "value": 0-100 },
+    { "label": "动态", "value": 0-100 },
+    { "label": "空间", "value": 0-100 },
+    { "label": "色面", "value": 0-100 },
+    { "label": "比例", "value": 0-100 },
+    { "label": "叙事", "value": 0-100 }
+  ],
+  "artistMatches": [
+    { "name": "蒙德里安", "score": 0-100, "trait": "秩序平衡", "note": "一句友好准确的判断" },
+    { "name": "杜斯伯格", "score": 0-100, "trait": "动态突破", "note": "一句友好准确的判断" },
+    { "name": "里特维德", "score": 0-100, "trait": "空间建构", "note": "一句友好准确的判断" },
+    { "name": "范德莱克", "score": 0-100, "trait": "色面叙事", "note": "一句友好准确的判断" },
+    { "name": "范通格洛", "score": 0-100, "trait": "比例理性", "note": "一句友好准确的判断" }
+  ],
+  "stageCaptions": {
+    "original": "第4张抽象终稿艺术化说明",
+    "stage3": "第3张对象化色面图说明，强调它来自统一语义说明书",
+    "stage2": "第2张结构草图说明，强调它来自同一份语义说明书",
+    "stage1": "第1张具象素描说明，强调它来自同一份语义说明书"
+  },
+  "title": "你是 + persona",
+  "subtitle": "一句适合互动展屏的副标题",
   "mbti": {
     "code": "四字母人格代号，可以原创但要像 MBTI",
     "name": "中文人格名",
@@ -526,28 +571,9 @@ JSON 字段：
     "name": "主艺术家中文名",
     "reason": "为什么测出这个艺术家，80 字以内"
   },
-  "artistMatches": [
-    { "name": "蒙德里安", "score": 0-100, "trait": "核心特质", "note": "一句尖锐有趣的判断" },
-    { "name": "范·杜斯堡", "score": 0-100, "trait": "核心特质", "note": "一句尖锐有趣的判断" },
-    { "name": "里特费尔德", "score": 0-100, "trait": "核心特质", "note": "一句尖锐有趣的判断" },
-    { "name": "范·德·莱克", "score": 0-100, "trait": "核心特质", "note": "一句尖锐有趣的判断" }
-  ],
-  "dimensions": [
-    { "label": "秩序", "value": 0-100 },
-    { "label": "材料", "value": 0-100 },
-    { "label": "色彩", "value": 0-100 },
-    { "label": "运动", "value": 0-100 },
-    { "label": "神秘性", "value": 0-100 }
-  ],
-  "stageCaptions": {
-    "original": "第4张抽象终稿艺术化说明",
-    "stage3": "第3张对象化色面图说明，强调它来自统一语义说明书",
-    "stage2": "第2张结构草图说明，强调它来自同一份语义说明书",
-    "stage1": "第1张具象素描说明，强调它来自同一份语义说明书"
-  },
-  "narrative": "一段 140-220 字的完整人格解读，必须具体、有趣、有艺术史气味",
+  "narrative": "一段 120-180 字的完整人格解读",
   "quote": "一句像这个人格会说的话",
-  "closing": "最后一句耐人寻味的话"
+  "closing": "最后一句给用户的启发"
 }`;
 }
 
@@ -560,7 +586,7 @@ async function report(req, res) {
     messages: [
       {
         role: "system",
-        content: "你是一位会写展览墙文、艺术评论和交互体验说明的中文策展人。你只输出严格 JSON。",
+        content: "你是风格派互动展的讲解员。你只输出严格 JSON。",
       },
       { role: "user", content: buildReportPrompt(analysis, stages) },
     ],
