@@ -577,8 +577,10 @@ h3 {
 .report-panel {
   min-height: 0;
   border-radius: 8px;
-  background: var(--ink);
-  color: var(--paper);
+  background:
+    linear-gradient(145deg, rgba(255, 250, 241, 0.94), rgba(238, 227, 211, 0.9));
+  color: var(--ink);
+  border: 1px solid var(--line);
   padding: clamp(18px, 1.75vw, 28px);
   display: grid;
   grid-template-columns: 1.04fr 0.96fr;
@@ -596,7 +598,7 @@ h3 {
 
 .report-subtitle {
   margin: 0;
-  color: rgba(248, 241, 230, 0.74);
+  color: var(--blue);
   font-size: clamp(0.92rem, 1vw, 1.05rem);
   line-height: 1.45;
   font-weight: 750;
@@ -605,23 +607,23 @@ h3 {
 .match-badge {
   width: 78px;
   aspect-ratio: 1;
-  border: 1px solid rgba(248, 241, 230, 0.28);
+  border: 1px solid var(--line);
   border-radius: 50%;
   display: grid;
   place-items: center;
   align-content: center;
-  background: rgba(248, 241, 230, 0.06);
+  background: var(--paper);
 }
 
 .match-badge span {
-  color: var(--yellow);
+  color: var(--red);
   font-family: Georgia, "Times New Roman", serif;
   font-size: 1.28rem;
   font-weight: 900;
 }
 
 .match-badge small {
-  color: rgba(248, 241, 230, 0.62);
+  color: var(--muted);
   font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
   font-size: 0.68rem;
   font-weight: 800;
@@ -629,18 +631,18 @@ h3 {
 
 .mbti-card {
   grid-column: 1 / -1;
-  border: 1px solid rgba(248, 241, 230, 0.2);
+  border: 1px solid var(--line);
   border-radius: 8px;
   padding: 12px;
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 12px;
-  background: rgba(248, 241, 230, 0.06);
+  background: rgba(255, 250, 241, 0.82);
 }
 
 .mbti-card > b {
-  color: var(--ink);
-  background: var(--yellow);
+  color: var(--paper);
+  background: var(--blue);
   border-radius: 6px;
   padding: 8px 9px;
   align-self: start;
@@ -649,13 +651,13 @@ h3 {
 }
 
 .mbti-card h3 {
-  color: var(--paper);
+  color: var(--ink);
   font-size: 1rem;
 }
 
 .mbti-card p {
   margin: 0;
-  color: rgba(248, 241, 230, 0.78);
+  color: var(--muted);
   font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
   font-size: 0.82rem;
   line-height: 1.48;
@@ -676,13 +678,13 @@ h3 {
   font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
   font-size: 0.75rem;
   font-weight: 800;
-  color: rgba(248, 241, 230, 0.76);
+  color: var(--ink-2);
 }
 
 .dimension-row i {
   height: 7px;
   border-radius: 99px;
-  background: rgba(248, 241, 230, 0.14);
+  background: rgba(23, 19, 15, 0.1);
   overflow: hidden;
 }
 
@@ -690,11 +692,11 @@ h3 {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--yellow), var(--red));
+  background: linear-gradient(90deg, var(--blue), var(--yellow), var(--red));
 }
 
 .dimension-row b {
-  color: var(--yellow);
+  color: var(--red);
   font-family: Georgia, "Times New Roman", serif;
 }
 
@@ -708,10 +710,10 @@ h3 {
 
 .artist-match-list article {
   min-height: 0;
-  border: 1px solid rgba(248, 241, 230, 0.18);
+  border: 1px solid var(--line);
   border-radius: 8px;
   padding: 9px;
-  background: rgba(248, 241, 230, 0.055);
+  background: rgba(255, 250, 241, 0.72);
 }
 
 .artist-match-list div {
@@ -723,21 +725,21 @@ h3 {
 
 .artist-match-list b {
   grid-row: 1 / 3;
-  color: var(--yellow);
+  color: var(--red);
   font-family: Georgia, "Times New Roman", serif;
   font-size: 1.05rem;
 }
 
 .artist-match-list h4 {
   margin: 0;
-  color: var(--paper);
+  color: var(--ink);
   font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
   font-size: 0.78rem;
   font-weight: 900;
 }
 
 .artist-match-list span {
-  color: rgba(248, 241, 230, 0.55);
+  color: var(--blue);
   font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
   font-size: 0.7rem;
   font-weight: 800;
@@ -745,7 +747,7 @@ h3 {
 
 .artist-match-list p {
   margin: 0;
-  color: rgba(248, 241, 230, 0.78);
+  color: var(--muted);
   font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
   font-size: 0.7rem;
   line-height: 1.42;
@@ -757,7 +759,7 @@ h3 {
 .report-quote,
 .report-closing {
   margin: 0;
-  color: rgba(248, 241, 230, 0.82);
+  color: var(--muted);
   font-size: clamp(0.78rem, 0.9vw, 0.92rem);
   line-height: 1.5;
   font-weight: 650;
@@ -766,12 +768,12 @@ h3 {
 .report-narrative {
   grid-column: 1 / -1;
   padding-top: 2px;
-  border-top: 1px solid rgba(248, 241, 230, 0.14);
+  border-top: 1px solid var(--line);
 }
 
 .report-quote {
   grid-column: 1 / 2;
-  color: var(--paper);
+  color: var(--ink);
   font-family: Georgia, "Times New Roman", "Noto Serif SC", serif;
   font-size: clamp(0.9rem, 1vw, 1.05rem);
   line-height: 1.35;
@@ -780,7 +782,7 @@ h3 {
 .report-closing {
   grid-column: 2 / 3;
   align-self: end;
-  color: var(--yellow);
+  color: var(--red);
   font-weight: 850;
 }
 

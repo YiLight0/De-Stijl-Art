@@ -145,23 +145,27 @@ function renderResultGallery() {
 
 function renderReportText() {
   const words = Array.isArray(analysisResult?.semanticWords) ? analysisResult.semanticWords.join(" · ") : "";
-  reportTitle.textContent = reportResult?.title || "生成报告";
+  const persona = reportResult?.persona || reportResult?.primaryArtist?.name || "";
+  const score = reportResult?.match_score || reportResult?.matchPercent || 0;
+  reportTitle.textContent = reportResult?.title || (persona ? `你是${persona}` : "生成报告");
   reportSubtitle.textContent = reportResult?.subtitle || words || "等待 LLM 撰写报告。";
-  matchPercent.textContent = reportResult?.matchPercent ? `${reportResult.matchPercent}%` : "--";
-  mbtiCode.textContent = reportResult?.mbti?.code || "----";
-  mbtiName.textContent = reportResult?.mbti?.name || "艺术家人格生成中";
+  matchPercent.textContent = score ? `${score}%` : "--";
+  mbtiCode.textContent = reportResult?.mbti?.code || "STIJL";
+  mbtiName.textContent = reportResult?.mbti?.name || persona || "大师人格生成中";
   reportThesis.textContent =
     reportResult?.mbti?.summary ||
+    reportResult?.why?.join(" ") ||
     reportResult?.primaryArtist?.reason ||
     analysisResult?.semanticSentence ||
-    "生成完成后，这里会出现一份更详细的艺术家人格解读。";
+    "生成完成后，这里会出现一份更详细的大师人格解读。";
 
   const dimensions = reportResult?.dimensions || [
     { label: "秩序", value: 0 },
-    { label: "材料", value: 0 },
-    { label: "色彩", value: 0 },
-    { label: "运动", value: 0 },
-    { label: "神秘性", value: 0 },
+    { label: "动态", value: 0 },
+    { label: "空间", value: 0 },
+    { label: "色面", value: 0 },
+    { label: "比例", value: 0 },
+    { label: "叙事", value: 0 },
   ];
   dimensionList.innerHTML = dimensions
     .map(
@@ -178,8 +182,9 @@ function renderReportText() {
   const matches = reportResult?.artistMatches || [
     { name: "蒙德里安", score: 0, trait: "纯粹关系", note: "等待匹配。" },
     { name: "范·杜斯堡", score: 0, trait: "动态张力", note: "等待匹配。" },
-    { name: "里特费尔德", score: 0, trait: "空间结构", note: "等待匹配。" },
-    { name: "范·德·莱克", score: 0, trait: "色彩自主", note: "等待匹配。" },
+    { name: "里特维德", score: 0, trait: "空间结构", note: "等待匹配。" },
+    { name: "范德莱克", score: 0, trait: "色彩自主", note: "等待匹配。" },
+    { name: "范通格洛", score: 0, trait: "比例理性", note: "等待匹配。" },
   ];
   artistMatchList.innerHTML = matches
     .map(
@@ -196,9 +201,14 @@ function renderReportText() {
     )
     .join("");
 
-  reportNarrative.textContent = reportResult?.narrative || "";
+  const comment = reportResult?.work_comment;
+  reportNarrative.textContent =
+    reportResult?.narrative ||
+    (comment
+      ? `结构：${comment.structure} 色彩：${comment.color} 抽象：${comment.abstraction} 逆推潜力：${comment.reverse_potential}`
+      : "");
   reportQuote.textContent = reportResult?.quote ? `“${reportResult.quote}”` : "";
-  reportClosing.textContent = reportResult?.closing || "";
+  reportClosing.textContent = reportResult?.closing || reportResult?.next_interaction || "";
 }
 
 function renderResult() {
