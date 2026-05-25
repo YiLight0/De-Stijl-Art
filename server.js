@@ -6,20 +6,31 @@ const root = __dirname;
 const publicDir = path.join(root, "public");
 const port = Number(process.env.PORT || 3000);
 
-const apiKey = process.env.SILICONFLOW_API_KEY || readLegacyEnv("SILICONFLOW_API_KEY");
-const visionModel = process.env.SILICONFLOW_VISION_MODEL || "Pro/moonshotai/Kimi-K2.6";
-const reportModel = process.env.SILICONFLOW_REPORT_MODEL || "MiniMaxAI/MiniMax-M2.5";
-const imageModel = process.env.SILICONFLOW_IMAGE_MODEL || "Tongyi-MAI/Z-Image-Turbo";
+const apiKey = process.env.SILICONFLOW_API_KEY || readEnvFile("SILICONFLOW_API_KEY");
+const visionModel = process.env.SILICONFLOW_VISION_MODEL || readEnvFile("SILICONFLOW_VISION_MODEL") || "Pro/moonshotai/Kimi-K2.6";
+const reportModel = process.env.SILICONFLOW_REPORT_MODEL || readEnvFile("SILICONFLOW_REPORT_MODEL") || "MiniMaxAI/MiniMax-M2.5";
+const imageModel = process.env.SILICONFLOW_IMAGE_MODEL || readEnvFile("SILICONFLOW_IMAGE_MODEL") || "Tongyi-MAI/Z-Image-Turbo";
 
-function readLegacyEnv(name) {
-  try {
-    const envPath = path.join(root, "legacy-next-app", ".env.local");
-    const raw = fs.readFileSync(envPath, "utf8");
-    const line = raw.split(/\r?\n/).find((item) => item.startsWith(`${name}=`));
-    return line ? line.slice(name.length + 1).trim().replace(/^["']|["']$/g, "") : "";
-  } catch {
-    return "";
+function readEnvFile(name) {
+  const envPaths = [
+    path.join(root, ".env.local"),
+    path.join(root, ".env"),
+    path.join(root, "legacy-next-app", ".env.local"),
+  ];
+
+  for (const envPath of envPaths) {
+    try {
+      const raw = fs.readFileSync(envPath, "utf8");
+      const line = raw
+        .split(/\r?\n/)
+        .map((item) => item.trim())
+        .find((item) => item && !item.startsWith("#") && item.startsWith(`${name}=`));
+      if (line) return line.slice(name.length + 1).trim().replace(/^["']|["']$/g, "");
+    } catch {
+      // Try the next env file.
+    }
   }
+  return "";
 }
 
 function sendJson(res, status, data) {
@@ -50,7 +61,7 @@ function readBody(req) {
 
 function requireKey() {
   if (!apiKey || apiKey.includes("YOUR")) {
-    throw new Error("缺少 SILICONFLOW_API_KEY，请在环境变量或 legacy-next-app/.env.local 中配置");
+    throw new Error("缺少 SILICONFLOW_API_KEY，请在环境变量或项目根目录 .env.local 中配置");
   }
 }
 
