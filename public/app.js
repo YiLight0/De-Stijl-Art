@@ -11,6 +11,7 @@ const resetImageBtn = document.querySelector("#resetImageBtn");
 const fileInput = document.querySelector("#fileInput");
 const statusText = document.querySelector("#statusText");
 const stageGrid = document.querySelector("#stageGrid");
+const errorPanel = document.querySelector("#errorPanel");
 const resultGallery = document.querySelector("#resultGallery");
 const reportTitle = document.querySelector("#reportTitle");
 const reportSubtitle = document.querySelector("#reportSubtitle");
@@ -39,6 +40,17 @@ let generatedStages = [];
 
 function setStatus(text) {
   statusText.textContent = text;
+}
+
+function setError(message) {
+  if (!errorPanel) return;
+  if (!message) {
+    errorPanel.hidden = true;
+    errorPanel.textContent = "";
+    return;
+  }
+  errorPanel.hidden = false;
+  errorPanel.textContent = message;
 }
 
 function setView(name) {
@@ -222,14 +234,24 @@ async function postJson(url, body) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "请求失败");
+  const text = await response.text();
+  let data = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = { raw: text };
+  }
+  if (!response.ok) {
+    const detail = data.error || data.message || data.raw || "请求失败";
+    throw new Error(`[${response.status}] ${url}\n${detail}`);
+  }
   return data;
 }
 
 async function generateStagesOneByOne() {
   generatedStages = [];
   reportResult = null;
+  setError("");
   renderStages();
 
   for (let index = 0; index < stageMeta.length; index += 1) {
@@ -264,6 +286,7 @@ async function runApi({ testOnly = false } = {}) {
 
   runBtn.disabled = true;
   testBtn.disabled = true;
+  setError("");
   setStatus(testOnly ? "正在测试 API..." : "正在进行视觉语义提取...");
 
   try {
@@ -291,7 +314,9 @@ async function runApi({ testOnly = false } = {}) {
 
     await generateStagesOneByOne();
   } catch (error) {
-    setStatus(error instanceof Error ? error.message : "API 调用失败。");
+    const message = error instanceof Error ? error.message : "API 调用失败。";
+    setStatus(message.split("\n")[0]);
+    setError(`生成失败\n\n${message}\n\n请检查：\n1. Vercel 环境变量 SILICONFLOW_API_KEY 是否配置在当前环境。\n2. Vercel 是否已重新部署。\n3. /api/analyze、/api/generate-stage、/api/report 是否返回 500 或超时。\n4. SiliconFlow 账户额度或模型名是否可用。`);
     if (!testOnly) renderStages();
   } finally {
     runBtn.disabled = false;
@@ -304,6 +329,7 @@ function resetInput() {
   generatedStages = [];
   analysisResult = null;
   reportResult = null;
+  setError("");
   preview.removeAttribute("src");
   mediaBox.classList.remove("has-image");
   setStatus("外层屏幕为 16:9，摄像头与生成图保持 4:3。");
