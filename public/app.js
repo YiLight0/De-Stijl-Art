@@ -228,7 +228,7 @@ async function generateStagesOneByOne() {
     const prompt =
       analysisResult?.stagePrompts?.[meta.key] ||
       analysisResult?.generation_constraints?.stage_targets?.[meta.key] ||
-      `${meta.title}，基于同一份抽象图逆推语义说明书生成，4:3 横构图，展览级审美。`;
+      `${meta.title}，基于同一份抽象图逆推语义说明书生成，必须保留原图构图语义、重心、比例、留白、主要方向和对象类别，不能生成无关内容，4:3 横构图，展览级审美，画面中绝对无文字、无字母、无数字、无符号、无标牌、无签名、无水印。`;
     const result = await postJson("/api/generate-stage", {
       title: meta.title,
       prompt,

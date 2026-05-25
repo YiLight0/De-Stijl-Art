@@ -73,7 +73,10 @@ function buildVisionPrompt() {
   return `
 你是“抽象艺术创作逆推实验室”的视觉分析引擎。请分析用户上传的抽象构成图像。你的任务不是评价作品，也不是直接生成图像，而是从这张抽象图中提取可用于“逆向创作推演”的结构化语义信息。
 
-重要限制：不要把画面解释成积木、乐高、玩具砖、拼装玩具或儿童玩具场景。即使画面中出现块状结构，也请从绘画、建筑、家具、室内、材料、光线、构成关系或艺术史角度理解。
+重要限制：
+- 不要把画面解释成积木、乐高、玩具砖、拼装玩具或儿童玩具场景。
+- 不要默认解释成椅子、红蓝椅、家具或室内结构。只有当画面中存在明确的座面、靠背、腿部、承重关系等证据，且它明显优于其他候选时，才可以选择这类对象。
+- 块状结构可以来自动物、植物、器物、建筑、人体姿态、机械部件、风景切面、室内空间、工具或抽象材料关系。请让候选对象保持多样，不要被风格派艺术史中的“椅子”案例绑架。
 
 请把这张图理解为某位抽象派艺术家创作流程中的最终抽象结果，也就是第4张抽象终稿。现在需要从它反推出更早期的创作阶段。你要输出一份能够支持后续三次文生图的“中间语义说明书”。
 
@@ -177,14 +180,14 @@ function buildVisionPrompt() {
     "object_structure_summary": ""
   },
   "stagePrompts": {
-    "stage_3_objectified_color_image": "完整文生图提示词：对象化色面图。仍然平面化、几何化、色块化，但对象轮廓开始可识别。保留主要色块位置、重心、横竖斜关系、疏密节奏和留白分布。不要写实，不要素描，不要复杂背景。",
-    "stage_2_structural_sketch": "完整文生图提示词：结构分析草图。黑白、手绘、非写实、以线条为主，强调对象骨架、支撑关系、主体体量、结构间隙和探索性草图感。不要彩色，不要复杂背景。",
-    "stage_1_representational_sketch": "完整文生图提示词：具象素描。黑白具象素描，能清晰识别现实对象，但仍保留手绘、简化、概括和创作初稿感。不要摄影，不要复杂叙事背景，不要卡通。"
+    "stage_3_objectified_color_image": "完整文生图提示词：对象化色面图。必须从 selected_source、element_mapping、composition_summary 和 must_preserve 出发。仍然平面化、几何化、色块化，但对象轮廓开始可识别。保留主要色块位置、重心、横竖斜关系、疏密节奏和留白分布。不要写实，不要素描，不要复杂背景。画面中绝对不能出现任何文字、字母、数字、符号、标牌、签名或水印。",
+    "stage_2_structural_sketch": "完整文生图提示词：结构分析草图。必须从 selected_source、element_mapping、composition_summary、object_structure_summary 和 must_preserve 出发。黑白、手绘、非写实、以线条为主，强调对象骨架、支撑关系、主体体量、结构间隙和探索性草图感。不要彩色，不要复杂背景。画面中绝对不能出现任何文字、字母、数字、符号、标注、尺寸线文字、签名或水印。",
+    "stage_1_representational_sketch": "完整文生图提示词：具象素描。必须从 selected_source、element_mapping、one_sentence_subject_summary、composition_summary、object_structure_summary 和 must_preserve 出发。黑白具象素描，能清晰识别同一个现实对象，但仍保留手绘、简化、概括和创作初稿感。不要摄影，不要复杂叙事背景，不要卡通。画面中绝对不能出现任何文字、字母、数字、符号、标牌、签名或水印。"
   },
   "shortComment": "一句话说明第4张如何被逆推为第3、第2、第1张"
 }
 
-提示词必须具体、可生成、有审美。不要让三次文生图重新猜对象；它们必须共享同一个 selected_source、element_mapping 和 prompt_base。`;
+提示词必须具体、可生成、有审美。不要让三次文生图重新猜对象；它们必须共享同一个 selected_source、element_mapping 和 prompt_base。生成目标不能脱离用户输入图像的构图语义，必须能看出与原始抽象图之间的对应关系。所有生成图中绝对不要出现文字、字母、数字、符号、标牌、签名、水印。`;
 }
 
 function fallbackAnalysis() {
@@ -208,7 +211,7 @@ function fallbackAnalysis() {
           position: "右上区域",
           relative_size: "中等",
           visual_role: "视觉中心与空间开口",
-          possible_object_part: ["窗洞", "靠背", "墙面开口"],
+        possible_object_part: ["窗洞", "主体平面", "开口", "躯干侧面", "器物局部"],
           confidence: 0.72,
         },
         {
@@ -218,7 +221,7 @@ function fallbackAnalysis() {
           position: "左下区域",
           relative_size: "中等偏小",
           visual_role: "低位重心与局部标记",
-          possible_object_part: ["座面", "桌面", "局部器物"],
+          possible_object_part: ["低位重心", "底座", "局部器物", "身体局部", "阴影块"],
           confidence: 0.68,
         },
       ],
@@ -248,35 +251,35 @@ function fallbackAnalysis() {
     },
     candidate_sources: [
       {
-        candidate: "一件几何化椅子或室内家具结构",
-        confidence: 0.76,
+        candidate: "一个被几何化的器物或空间结构",
+        confidence: 0.58,
         supporting_evidence: [
-          { visual_element: "横竖黑线", interpretation: "类似家具支撑与横杆" },
-          { visual_element: "红蓝色块", interpretation: "可对应座面、靠背或局部平面" },
+          { visual_element: "横竖黑线", interpretation: "可能是支撑、边界、框架或空间切分" },
+          { visual_element: "红蓝色块", interpretation: "可对应主体平面、局部节点、开口或阴影块" },
         ],
-        weaknesses: ["缺少明确人体尺度参照"],
+        weaknesses: ["对象类别证据不足，不能直接收束为椅子或家具"],
       },
       {
-        candidate: "靠窗的室内静物或墙面结构",
+        candidate: "一个侧向的动物、工具或器物轮廓",
         confidence: 0.62,
         supporting_evidence: [
-          { visual_element: "蓝色矩形", interpretation: "可能是窗洞或墙面开口" },
-          { visual_element: "水平线", interpretation: "可能是桌沿或窗台" },
+          { visual_element: "低位红色色块", interpretation: "可能是身体重心、底座或局部节点" },
+          { visual_element: "水平线", interpretation: "可能是身体延展、工具杆件或器物主轴" },
         ],
-        weaknesses: ["物体轮廓仍较弱"],
+        weaknesses: ["需要后续草图阶段补足轮廓关系"],
       },
     ],
     selected_source: {
-      name: "一件几何化椅子或室内家具结构",
-      reason: "横竖支撑、色面节点和开放留白都适合向结构草图与具象素描逐步逆推。",
-      confidence: 0.76,
+      name: "一个被几何化的器物或空间结构",
+      reason: "横竖支撑、色面节点和开放留白足以支持逆推，但证据不足以固定为椅子或家具。",
+      confidence: 0.58,
     },
-    possibleOrigin: "一件几何化椅子或室内家具结构",
+    possibleOrigin: "一个被几何化的器物或空间结构",
     element_mapping: [
-      { abstract_element: "左侧黑色竖条", mapped_object_part: "支撑腿或竖向框架", reason: "位置低且具有承重感", confidence: 0.74 },
-      { abstract_element: "中部黑色横条", mapped_object_part: "横梁、桌沿或椅背横杆", reason: "贯穿画面并建立主体延展方向", confidence: 0.7 },
-      { abstract_element: "蓝色矩形", mapped_object_part: "靠背、窗洞或垂直平面", reason: "处在视觉中心，像结构中的主要平面", confidence: 0.72 },
-      { abstract_element: "红色矩形", mapped_object_part: "座面或低位局部节点", reason: "位于底部并稳定画面重心", confidence: 0.68 },
+      { abstract_element: "左侧黑色竖条", mapped_object_part: "竖向支撑、边界或身体支点", reason: "位置低且具有承重感", confidence: 0.68 },
+      { abstract_element: "中部黑色横条", mapped_object_part: "主轴、横向边界或身体延展", reason: "贯穿画面并建立主体方向", confidence: 0.66 },
+      { abstract_element: "蓝色矩形", mapped_object_part: "主体平面、开口或上部体块", reason: "处在视觉中心，像结构中的主要平面", confidence: 0.64 },
+      { abstract_element: "红色矩形", mapped_object_part: "低位重心、底座或局部节点", reason: "位于底部并稳定画面重心", confidence: 0.62 },
     ],
     generation_constraints: {
       must_preserve: ["横竖主方向", "左侧支撑密度", "右上视觉中心", "红蓝黄有限配色", "4:3 横构图"],
@@ -288,17 +291,17 @@ function fallbackAnalysis() {
       },
     },
     prompt_base: {
-      one_sentence_subject_summary: "A simplified geometric chair-like interior furniture structure with vertical supports, a horizontal frame, colored planes, and open negative space.",
+      one_sentence_subject_summary: "A simplified geometric object or spatial structure with vertical supports, a horizontal axis, colored planes, and open negative space.",
       composition_summary: "The composition is left-weighted with vertical supports, a strong horizontal member across the middle, a blue plane in the upper right, a red plane in the lower left, and generous negative space.",
-      object_structure_summary: "The object is built from visible supports, frame-like horizontal and vertical members, and flat colored planes that may become seat, back, opening, or structural panels.",
+      object_structure_summary: "The object is built from visible supports, horizontal and vertical members, and flat colored planes that may become body mass, opening, base, edge, node, or structural panels.",
     },
     stagePrompts: {
       stage_3_objectified_color_image:
-        "对象化色面图，一件几何化椅子或室内家具结构开始从抽象色块中显露，保留左侧竖向支撑、中部水平横杆、右上蓝色平面、左下红色平面与大量留白，平面色块、粗黑边界、有限配色、几何化对象轮廓，艺术家中间创作稿，4:3 landscape",
+        "对象化色面图，基于同一份中间语义说明书，一个被几何化的器物、动物、工具、建筑局部或空间结构开始从抽象色块中显露，不要默认成椅子或家具，严格保留左侧竖向支撑、中部水平轴线、右上蓝色平面、左下红色重心与大量留白，平面色块、粗黑边界、有限配色、几何化对象轮廓，艺术家中间创作稿，no text, no letters, no numbers, no symbols, no signature, no watermark, 4:3 landscape",
       stage_2_structural_sketch:
-        "结构分析草图，一件几何化椅子或室内家具结构的黑白手绘分析，竖向支撑、水平框架、座面、靠背或开口被线条推演出来，白色背景，铅笔与炭笔线条，辅助线、局部阴影、探索式线稿，非彩色，4:3 landscape",
+        "结构分析草图，基于同一份中间语义说明书，一个被几何化的器物、动物、工具、建筑局部或空间结构的黑白手绘分析，不要默认成椅子或家具，严格保留原始抽象图的左侧支撑密度、中部横向结构、右上主体平面和左下重心，竖向支撑、水平主轴、主体体块、开口或节点被线条推演出来，白色背景，铅笔与炭笔线条，少量辅助线但无文字标注，局部阴影、探索式线稿，非彩色，no text, no letters, no numbers, no symbols, no labels, no signature, no watermark, 4:3 landscape",
       stage_1_representational_sketch:
-        "具象素描，一件简化的几何家具或椅子结构，清楚可识别，有竖向支撑、横向框架、座面和靠背平面，铅笔观察速写，柔和阴影，白色背景，概括体块，艺术家创作初稿，非照片，4:3 landscape",
+        "具象素描，基于同一份中间语义说明书，一个简化的器物、动物、工具、建筑局部或空间结构，必须与原始抽象图的构图、重心、比例和主方向保持对应，不要默认成椅子或家具，清楚可识别，有竖向支撑、横向主轴、主体体块与局部节点，铅笔观察速写，柔和阴影，白色背景，概括体块，艺术家创作初稿，非照片，no text, no letters, no numbers, no symbols, no labels, no signature, no watermark, 4:3 landscape",
     },
     shortComment: "系统先把第4张抽象终稿读成统一语义说明书，再分别转译为第3张色面、第2张结构、第1张素描。",
   };
@@ -317,10 +320,10 @@ function fallbackReport(analysis = fallbackAnalysis()) {
     },
     primaryArtist: {
       name: "赫里特·里特费尔德",
-      reason: "画面最强的不是颜色，而是空间如何被横竖关系支撑起来。这接近里特费尔德把椅子、墙面和房间拆成独立构件的方式。",
+      reason: "画面最强的不是颜色，而是空间如何被横竖关系支撑起来。这接近里特费尔德把物体、墙面和空间拆成独立构件的方式。",
     },
     artistMatches: [
-      { name: "里特费尔德", score: 86, trait: "空间结构", note: "像一把还没成为椅子的椅子，先把支撑关系亮出来。" },
+      { name: "里特费尔德", score: 86, trait: "空间结构", note: "像一个还没被命名的结构，先把支撑关系亮出来。" },
       { name: "蒙德里安", score: 78, trait: "纯粹秩序", note: "你有清除偶然性的冲动，线条像一套安静的戒律。" },
       { name: "范·杜斯堡", score: 52, trait: "动态宣言", note: "能量存在，但仍被水平与垂直管束着。" },
       { name: "范·德·莱克", score: 64, trait: "色彩自主", note: "色块不是填色，它们像独立站在白色空间中的小型事件。" },
@@ -405,18 +408,26 @@ async function analyze(req, res) {
 
 function buildImagePrompt(prompt, title) {
   return `${title}
-你正在执行“抽象艺术创作流程逆推”任务。输入文本是一份从同一张抽象终稿中提取出的统一语义说明书。你的任务不是自由创作新对象，而是在保留核心构图逻辑的前提下，生成该对象在更早创作阶段的对应图像。必须保持对象类别、画面重心、比例节奏和主要方向关系的一致性，只改变抽象程度与表现方式。
+你正在执行“抽象艺术创作流程逆推”任务。输入文本是一份从同一张抽象终稿中提取出的统一语义说明书。你的任务不是自由创作新对象，而是在保留核心构图逻辑的前提下，生成该对象在更早创作阶段的对应图像。必须保持对象类别、画面重心、比例节奏、留白分布、主要色块关系和主要方向关系的一致性，只改变抽象程度与表现方式。
+
+硬性约束：
+1. 必须从语义说明书中的 selected_source、element_mapping、prompt_base、must_preserve 出发。
+2. 生成结果必须能看出与原始抽象图之间的构图对应关系，不能生成一个无关的新物体或新场景。
+3. 画面里绝对不能出现任何文字、字母、数字、符号、标牌、说明标签、签名、水印、logo。
+4. 不要积木、乐高、玩具砖、拼装玩具或儿童玩具。
+5. 不要默认生成椅子、红蓝椅、家具或室内设计物；只有当语义说明书的 selected_source 明确选择这类对象时才可以生成。
 
 ${prompt}
 
-画面要求：4:3 横构图，展览级审美，构图清晰。不要文字、不要水印、不要 UI、不要边框。不要积木、乐高、玩具砖、拼装玩具或儿童玩具。`;
+画面要求：4:3 横构图，展览级审美，构图清晰。纯图像，无文字，无字母，无数字，无符号，无标牌，无签名，无水印，无 UI，无边框。`;
 }
 
 async function generateOne(prompt, title) {
   const data = await siliconflowJson("https://api.siliconflow.cn/v1/images/generations", {
     model: imageModel,
     prompt: buildImagePrompt(prompt, title),
-    negative_prompt: "text, watermark, logo, UI, frame, blurry, low quality, bad anatomy",
+    negative_prompt:
+      "text, letters, numbers, symbols, typography, handwriting, caption, label, sign, signage, watermark, logo, signature, UI, interface, frame, border, lego, building blocks, toy bricks, toy, default chair, chair, red blue chair, furniture, unrelated object, unrelated scene, blurry, low quality, bad anatomy",
     image_size: "1024x768",
     batch_size: 1,
     num_inference_steps: 20,
