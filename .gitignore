@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+legacy-next-app/node_modules/
+
+# Build output
+dist/
+build/
+.next/
+out/
+coverage/
+legacy-next-app/.next/
+legacy-next-app/out/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+legacy-next-app/.env
+legacy-next-app/.env.*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local caches
+.npm-cache/
+legacy-next-app/.npm-cache/
+.vercel/
+.turbo/
+.cache/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Keep the archived old app local-only unless explicitly needed
+legacy-next-app/
