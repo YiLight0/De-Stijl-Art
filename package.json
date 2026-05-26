@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check public/app.js"
+    "check": "node --check server.js && node --check public/app.js && node --check api/_lib.js && node --check api/analyze.js && node --check api/generate-stage.js && node --check api/report.js && node --check api/test-image.js"
   },
   "dependencies": {}
 }

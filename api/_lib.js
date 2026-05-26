@@ -1,13 +1,34 @@
-const API_URL = "https://api.siliconflow.cn/v1";
+const fs = require("fs");
+const path = require("path");
 
-const apiKey = process.env.SILICONFLOW_API_KEY;
-const visionModel = process.env.SILICONFLOW_VISION_MODEL || "Pro/moonshotai/Kimi-K2.6";
-const reportModel = process.env.SILICONFLOW_REPORT_MODEL || "MiniMaxAI/MiniMax-M2.5";
-const imageModel = process.env.SILICONFLOW_IMAGE_MODEL || "Tongyi-MAI/Z-Image-Turbo";
+const OPENAI_API_URL = "https://api.openai.com/v1";
+
+const apiKey = process.env.OPENAI_API_KEY || readEnvFile("OPENAI_API_KEY");
+const visionModel = process.env.OPENAI_VISION_MODEL || readEnvFile("OPENAI_VISION_MODEL") || "gpt-4.1";
+const reportModel = process.env.OPENAI_REPORT_MODEL || readEnvFile("OPENAI_REPORT_MODEL") || "gpt-4.1";
+const imageModel = process.env.OPENAI_IMAGE_MODEL || readEnvFile("OPENAI_IMAGE_MODEL") || "gpt-image-1";
+const imageSize = process.env.OPENAI_IMAGE_SIZE || readEnvFile("OPENAI_IMAGE_SIZE") || "1536x1024";
+
+function readEnvFile(name) {
+  const root = path.resolve(__dirname, "..");
+  for (const envPath of [path.join(root, ".env.local"), path.join(root, ".env")]) {
+    try {
+      const raw = fs.readFileSync(envPath, "utf8");
+      const line = raw
+        .split(/\r?\n/)
+        .map((item) => item.trim())
+        .find((item) => item && !item.startsWith("#") && item.startsWith(`${name}=`));
+      if (line) return line.slice(name.length + 1).trim().replace(/^["']|["']$/g, "");
+    } catch {
+      // Try the next env file.
+    }
+  }
+  return "";
+}
 
 function requireKey() {
   if (!apiKey || apiKey.includes("YOUR")) {
-    throw new Error("Missing SILICONFLOW_API_KEY in Vercel environment variables.");
+    throw new Error("Missing OPENAI_API_KEY in environment variables.");
   }
 }
 
@@ -18,7 +39,7 @@ function normalizeImageInput(image) {
   return `data:image/png;base64,${image}`;
 }
 
-function normalizeJsonText(text) {
+function stripJsonFence(text) {
   return String(text || "")
     .replace(/^```json\s*/i, "")
     .replace(/^```\s*/i, "")
@@ -26,9 +47,9 @@ function normalizeJsonText(text) {
     .trim();
 }
 
-async function siliconflowJson(path, body) {
+async function openaiJson(path, body) {
   requireKey();
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await fetch(`${OPENAI_API_URL}${path}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -36,6 +57,7 @@ async function siliconflowJson(path, body) {
     },
     body: JSON.stringify(body),
   });
+
   const text = await response.text();
   let data = {};
   try {
@@ -43,8 +65,10 @@ async function siliconflowJson(path, body) {
   } catch {
     data = { raw: text };
   }
+
   if (!response.ok) {
-    throw new Error(`${response.status} ${text}`);
+    const message = data.error?.message || data.error || text;
+    throw new Error(`${response.status} ${message}`);
   }
   return data;
 }
@@ -58,10 +82,10 @@ function buildVisionPrompt() {
 - 不要默认解释成椅子、红蓝椅、家具或室内结构，除非证据非常明确。
 - 块状结构可以来自动物、植物、器物、建筑、人体姿态、机械部件、风景切面、工具或抽象材料关系。
 
-流程是：第4张抽象终稿 -> 结构化语义说明书 -> 第3张对象化色面图 -> 第2张结构草图 -> 第1张具象素描。
+流程：第4张抽象终稿 -> 结构化语义说明书 -> 第3张对象化色面图 -> 第2张结构草图 -> 第1张具象素描。
 关键原则：一次理解，三次转译。后三张图都只基于这份语义说明书生成。
 
-请只输出 JSON，字段如下：
+请只输出 JSON：
 {
   "semanticWords": ["5-10 个中文词语"],
   "semanticSentence": "一句有画面感的语义总结",
@@ -107,10 +131,10 @@ function buildVisionPrompt() {
 
 async function analyzeImage(imageBase64) {
   const image = normalizeImageInput(imageBase64);
-  const data = await siliconflowJson("/chat/completions", {
+  const data = await openaiJson("/chat/completions", {
     model: visionModel,
     messages: [
-      { role: "system", content: "你只输出严格 JSON。" },
+      { role: "system", content: "你只输出严格 JSON，不要 Markdown。" },
       {
         role: "user",
         content: [
@@ -119,15 +143,14 @@ async function analyzeImage(imageBase64) {
         ],
       },
     ],
-    stream: false,
     max_tokens: 2048,
-    temperature: 0.82,
-    top_p: 0.9,
+    temperature: 0.75,
     response_format: { type: "json_object" },
   });
+
   const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error("Vision model returned empty content.");
-  return JSON.parse(normalizeJsonText(content));
+  if (!content) throw new Error("OpenAI vision model returned empty content.");
+  return JSON.parse(stripJsonFence(content));
 }
 
 function buildImagePrompt(prompt, title) {
@@ -142,22 +165,22 @@ function buildImagePrompt(prompt, title) {
 
 ${prompt}
 
-4:3 横构图，纯图像，无文字，无字母，无数字，无符号，无标牌，无签名，无水印，无 UI，无边框。`;
+4:3 横构图感，纯图像，无文字，无字母，无数字，无符号，无标牌，无签名，无水印，无 UI，无边框。`;
 }
 
 async function generateImage(prompt, title) {
-  const data = await siliconflowJson("/images/generations", {
+  const data = await openaiJson("/images/generations", {
     model: imageModel,
     prompt: buildImagePrompt(prompt, title),
-    negative_prompt:
-      "text, letters, words, numbers, symbols, typography, handwriting, caption, label, annotation, sign, signage, poster, stamp, watermark, logo, signature, readable characters, pseudo text, UI, interface, frame, border, lego, building blocks, toy bricks, toy, default chair, red blue chair, furniture, unrelated object, unrelated scene",
-    image_size: "1024x768",
-    batch_size: 1,
-    num_inference_steps: 20,
-    guidance_scale: 7.5,
+    size: imageSize,
+    quality: "medium",
+    n: 1,
   });
-  const result = data.images?.[0] || data.data?.[0];
-  if (!result?.url && !result?.b64_json) throw new Error("Image model returned no image.");
+
+  const result = data.data?.[0];
+  if (!result?.b64_json && !result?.url) {
+    throw new Error("OpenAI image model returned no image.");
+  }
   return result.b64_json ? `data:image/png;base64,${result.b64_json}` : result.url;
 }
 
@@ -209,21 +232,20 @@ ${JSON.stringify(stages, null, 2)}
   "closing": ""
 }`;
 
-  const data = await siliconflowJson("/chat/completions", {
+  const data = await openaiJson("/chat/completions", {
     model: reportModel,
     messages: [
       { role: "system", content: "你是风格派互动展的讲解员。你只输出严格 JSON。" },
       { role: "user", content: prompt },
     ],
-    stream: false,
     max_tokens: 2048,
     temperature: 0.72,
-    top_p: 0.9,
     response_format: { type: "json_object" },
   });
+
   const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error("Report model returned empty content.");
-  return JSON.parse(normalizeJsonText(content));
+  if (!content) throw new Error("OpenAI report model returned empty content.");
+  return JSON.parse(stripJsonFence(content));
 }
 
 function sendOk(res, data) {

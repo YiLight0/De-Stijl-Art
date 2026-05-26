@@ -316,7 +316,7 @@ async function runApi({ testOnly = false } = {}) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "API 调用失败。";
     setStatus(message.split("\n")[0]);
-    setError(`生成失败\n\n${message}\n\n请检查：\n1. Vercel 环境变量 SILICONFLOW_API_KEY 是否配置在当前环境。\n2. Vercel 是否已重新部署。\n3. /api/analyze、/api/generate-stage、/api/report 是否返回 500 或超时。\n4. SiliconFlow 账户额度或模型名是否可用。`);
+    setError(`生成失败\n\n${message}\n\n请检查：\n1. Vercel 环境变量 OPENAI_API_KEY 是否配置在当前环境。\n2. Vercel 是否已重新部署。\n3. /api/analyze、/api/generate-stage、/api/report 是否返回 500 或超时。\n4. OpenAI 账户额度、项目权限或模型名是否可用。`);
     if (!testOnly) renderStages();
   } finally {
     runBtn.disabled = false;

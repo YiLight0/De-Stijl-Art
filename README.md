@@ -37,18 +37,20 @@ http://localhost:3000
 后端会优先读取环境变量：
 
 ```bash
-SILICONFLOW_API_KEY=你的key node server.js
+OPENAI_API_KEY=你的key node server.js
 ```
 
-如果没有环境变量，会继续读取：
+如果没有环境变量，会继续读取项目根目录：
 
 ```text
-legacy-next-app/.env.local
+.env.local
 ```
 
 可选模型变量：
 
 ```text
-SILICONFLOW_VISION_MODEL=Pro/moonshotai/Kimi-K2.6
-SILICONFLOW_IMAGE_MODEL=Tongyi-MAI/Z-Image-Turbo
+OPENAI_VISION_MODEL=gpt-4.1
+OPENAI_REPORT_MODEL=gpt-4.1
+OPENAI_IMAGE_MODEL=gpt-image-1
+OPENAI_IMAGE_SIZE=1536x1024
 ```
