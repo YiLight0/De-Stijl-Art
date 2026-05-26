@@ -58,10 +58,7 @@ button {
 }
 
 .topbar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.52fr);
-  gap: 22px;
-  align-items: end;
+  display: block;
   border-bottom: 3px solid var(--line);
   padding-bottom: 12px;
 }
@@ -102,40 +99,6 @@ h3 {
   font-weight: 950;
 }
 
-.progress {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  pointer-events: none;
-  border: 3px solid var(--line);
-  background: var(--paper-2);
-}
-
-.progress-item {
-  min-height: 56px;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 2px;
-  border-right: 3px solid var(--line);
-  color: var(--ink);
-  font-size: clamp(0.7rem, 0.8vw, 0.86rem);
-  font-weight: 900;
-}
-
-.progress-item:last-child {
-  border-right: 0;
-}
-
-.progress-item span {
-  font-size: clamp(0.95rem, 1vw, 1.25rem);
-  font-weight: 950;
-}
-
-.progress-item.active {
-  background: var(--red);
-  color: var(--ink);
-}
-
 .stepbar {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -152,6 +115,10 @@ h3 {
 }
 
 .stepbar span:first-child {
+  background: transparent;
+}
+
+.stepbar span.active {
   background: var(--yellow);
 }
 
@@ -214,6 +181,11 @@ h3 {
 
 .btn.secondary {
   background: var(--yellow);
+}
+
+.btn.active {
+  background: var(--blue);
+  color: var(--paper-2);
 }
 
 .btn.ghost {
@@ -356,7 +328,8 @@ h3 {
 }
 
 .learn-steps,
-.score-layout {
+.score-layout,
+.knowledge-layout {
   min-height: 0;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -365,7 +338,8 @@ h3 {
 }
 
 .learn-steps article,
-.score-card {
+.score-card,
+.knowledge-card {
   min-height: 0;
   border: 3px solid var(--line);
   background: var(--paper-2);
@@ -376,12 +350,253 @@ h3 {
 }
 
 .learn-steps p,
-.score-card p {
+.score-card p,
+.knowledge-card p {
   margin: 0;
   color: var(--muted);
   font-size: clamp(0.78rem, 0.82vw, 0.94rem);
   line-height: 1.62;
   font-weight: 800;
+}
+
+.knowledge-layout {
+  grid-template-columns: 0.95fr 1.15fr 1.05fr 0.85fr;
+  grid-template-rows: minmax(0, 1.02fr) minmax(0, 0.98fr);
+}
+
+.knowledge-card {
+  gap: 10px;
+  overflow: hidden;
+}
+
+.knowledge-card h3 {
+  font-size: clamp(1rem, 1.15vw, 1.36rem);
+}
+
+.intro-card {
+  grid-row: span 2;
+  background: var(--yellow);
+  align-content: center;
+}
+
+.intro-card h3 {
+  font-size: clamp(1.4rem, 2vw, 2.45rem);
+  line-height: 1.08;
+}
+
+.intro-card p {
+  color: rgba(17, 20, 23, 0.74);
+  font-size: clamp(0.82rem, 0.92vw, 1.05rem);
+  line-height: 1.62;
+}
+
+.grammar-card {
+  grid-column: 3 / 5;
+  grid-row: 1 / 2;
+}
+
+.grammar-card ul,
+.flow-card ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.grammar-card li,
+.flow-card li {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  border-top: 2px solid var(--line);
+  padding-top: 8px;
+  color: var(--muted);
+  font-size: clamp(0.72rem, 0.78vw, 0.9rem);
+  line-height: 1.42;
+  font-weight: 800;
+}
+
+.grammar-card li b,
+.flow-card li b {
+  color: var(--paper-2);
+  background: var(--blue);
+  border: 2px solid var(--line);
+  padding: 2px 4px;
+  text-align: center;
+  font-size: 0.72rem;
+}
+
+.idea-card {
+  background: var(--paper);
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
+}
+
+.idea-card p + p {
+  border-top: 2px solid var(--line);
+  padding-top: 10px;
+}
+
+.flow-card {
+  grid-column: 3 / 4;
+  grid-row: 2 / 3;
+}
+
+.compare-card {
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+  background: var(--paper-2);
+}
+
+.compare-card p {
+  font-size: clamp(0.7rem, 0.76vw, 0.88rem);
+}
+
+.compare-visual {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.compare-visual > b {
+  text-align: center;
+  font-size: clamp(1.2rem, 1.5vw, 1.8rem);
+  font-weight: 950;
+}
+
+.object-diagram,
+.abstract-diagram {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border: 3px solid var(--line);
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.object-diagram i,
+.abstract-diagram i {
+  position: absolute;
+  display: block;
+}
+
+.object-diagram .body {
+  left: 18%;
+  top: 34%;
+  width: 46%;
+  height: 24%;
+  border: 5px solid var(--line);
+  border-radius: 50% 38% 34% 44%;
+}
+
+.object-diagram .head {
+  right: 17%;
+  top: 28%;
+  width: 18%;
+  height: 18%;
+  border: 5px solid var(--line);
+  border-radius: 50%;
+}
+
+.object-diagram .leg {
+  top: 56%;
+  width: 6%;
+  height: 24%;
+  background: var(--line);
+}
+
+.object-diagram .leg.a {
+  left: 28%;
+}
+
+.object-diagram .leg.b {
+  left: 52%;
+}
+
+.abstract-diagram .black {
+  background: var(--line);
+}
+
+.abstract-diagram .v {
+  left: 35%;
+  top: 0;
+  width: 7%;
+  height: 100%;
+}
+
+.abstract-diagram .h {
+  left: 0;
+  top: 42%;
+  width: 100%;
+  height: 7%;
+}
+
+.abstract-diagram .red {
+  left: 8%;
+  top: 12%;
+  width: 25%;
+  height: 25%;
+  background: var(--red);
+}
+
+.abstract-diagram .blue {
+  right: 9%;
+  top: 50%;
+  width: 34%;
+  height: 30%;
+  background: var(--blue);
+}
+
+.abstract-diagram .yellow {
+  left: 10%;
+  bottom: 10%;
+  width: 28%;
+  height: 18%;
+  background: var(--yellow);
+}
+
+.artist-card {
+  grid-column: 4 / 5;
+  grid-row: 2 / 3;
+  background: var(--red);
+}
+
+.artist-card h3,
+.artist-card span,
+.artist-card b {
+  color: var(--paper-2);
+}
+
+.artist-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  min-height: 0;
+}
+
+.artist-grid span {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  gap: 8px;
+  border-top: 2px solid rgba(17, 20, 23, 0.9);
+  padding-top: 6px;
+  font-size: clamp(0.68rem, 0.74vw, 0.84rem);
+  line-height: 1.22;
+  font-weight: 850;
+}
+
+.note-card {
+  display: none;
+  background: var(--blue);
+  align-content: center;
+}
+
+.note-card h3,
+.note-card p {
+  color: var(--paper-2);
 }
 
 .score-layout {
@@ -628,6 +843,49 @@ body.draw-active .draw-tool {
 
 body.draw-active .camera-tool {
   display: none;
+}
+
+.draw-controls {
+  border: 3px solid var(--line);
+  background: var(--paper-2);
+  padding: 10px;
+  display: none;
+  gap: 10px;
+}
+
+body.draw-active .draw-controls {
+  display: grid;
+}
+
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.swatch {
+  aspect-ratio: 1;
+  border: 3px solid var(--line);
+  background: var(--swatch);
+  cursor: pointer;
+}
+
+.swatch.active {
+  outline: 3px solid var(--yellow);
+  outline-offset: 2px;
+}
+
+.size-control {
+  display: grid;
+  gap: 5px;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 950;
+}
+
+.size-control input {
+  width: 100%;
+  accent-color: var(--blue);
 }
 
 .stage-grid {

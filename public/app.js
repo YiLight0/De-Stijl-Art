@@ -1,5 +1,5 @@
 const views = Array.from(document.querySelectorAll(".view"));
-const progressItems = Array.from(document.querySelectorAll(".progress-item"));
+const progressItems = Array.from(document.querySelectorAll(".stepbar span"));
 const camera = document.querySelector("#camera");
 const preview = document.querySelector("#preview");
 const mediaBox = document.querySelector(".media-box");
@@ -13,6 +13,9 @@ const useDrawingBtn = document.querySelector("#useDrawingBtn");
 const modeCameraBtn = document.querySelector("#modeCameraBtn");
 const modeDrawBtn = document.querySelector("#modeDrawBtn");
 const drawCanvas = document.querySelector("#drawCanvas");
+const brushSize = document.querySelector("#brushSize");
+const eraserBtn = document.querySelector("#eraserBtn");
+const colorSwatches = document.querySelector("#colorSwatches");
 const fileInput = document.querySelector("#fileInput");
 const statusText = document.querySelector("#statusText");
 const stageGrid = document.querySelector("#stageGrid");
@@ -62,6 +65,8 @@ let analysisResult = null;
 let reportResult = null;
 let generatedStages = [];
 let drawing = false;
+let brushColor = "#111417";
+let erasing = false;
 
 function setStatus(text) {
   statusText.textContent = text;
@@ -316,7 +321,7 @@ async function runApi({ testOnly = false } = {}) {
   }
 
   runBtn.disabled = true;
-  testBtn.disabled = true;
+  if (testBtn) testBtn.disabled = true;
   setError("");
   setStatus(testOnly ? "正在测试 API..." : "正在提取风格派形式特征...");
 
@@ -351,7 +356,7 @@ async function runApi({ testOnly = false } = {}) {
     if (!testOnly) renderStages();
   } finally {
     runBtn.disabled = false;
-    testBtn.disabled = false;
+    if (testBtn) testBtn.disabled = false;
   }
 }
 
@@ -397,13 +402,17 @@ function captureCamera() {
 
 function setupDrawing() {
   const ctx = drawCanvas.getContext("2d");
+  function applyBrush() {
+    ctx.lineWidth = Number(brushSize?.value || 22);
+    ctx.lineCap = "square";
+    ctx.lineJoin = "miter";
+    ctx.strokeStyle = erasing ? "#f7fbfd" : brushColor;
+  }
+
   function clear() {
     ctx.fillStyle = "#f7fbfd";
     ctx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
-    ctx.lineWidth = 22;
-    ctx.lineCap = "square";
-    ctx.lineJoin = "miter";
-    ctx.strokeStyle = "#111417";
+    applyBrush();
   }
 
   function point(event) {
@@ -417,6 +426,7 @@ function setupDrawing() {
 
   function begin(event) {
     drawing = true;
+    applyBrush();
     const p = point(event);
     ctx.beginPath();
     ctx.moveTo(p.x, p.y);
@@ -436,6 +446,21 @@ function setupDrawing() {
   }
 
   clear();
+  colorSwatches?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-color]");
+    if (!button) return;
+    brushColor = button.dataset.color;
+    erasing = false;
+    eraserBtn?.classList.remove("active");
+    colorSwatches.querySelectorAll(".swatch").forEach((item) => item.classList.toggle("active", item === button));
+    applyBrush();
+  });
+  brushSize?.addEventListener("input", applyBrush);
+  eraserBtn?.addEventListener("click", () => {
+    erasing = !erasing;
+    eraserBtn.classList.toggle("active", erasing);
+    applyBrush();
+  });
   drawCanvas.addEventListener("pointerdown", begin);
   drawCanvas.addEventListener("pointermove", move);
   window.addEventListener("pointerup", end);
@@ -466,8 +491,8 @@ fileInput.addEventListener("change", () => {
 });
 
 runBtn.addEventListener("click", () => runApi());
-testBtn.addEventListener("click", () => runApi({ testOnly: true }));
-resetImageBtn.addEventListener("click", resetInput);
+if (testBtn) testBtn.addEventListener("click", () => runApi({ testOnly: true }));
+if (resetImageBtn) resetImageBtn.addEventListener("click", resetInput);
 document.querySelector("#restartBtn").addEventListener("click", () => {
   resetInput();
   setView("start");
