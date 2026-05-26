@@ -3,112 +3,143 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>抽象语义生成实验</title>
+    <title>风格派倒推分析互动网页</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <main class="app">
-      <section class="frame" aria-label="抽象语义生成实验">
-        <header class="progress" aria-label="当前流程">
-          <div class="progress-item active"><span>01</span>开始</div>
-          <div class="progress-item"><span>02</span>学习</div>
-          <div class="progress-item"><span>03</span>输入</div>
-          <div class="progress-item"><span>04</span>生成</div>
-          <div class="progress-item"><span>05</span>报告</div>
+      <section class="frame" aria-label="风格派倒推分析互动网页">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">De Stijl Reverse Analysis</p>
+            <h1>风格派倒推分析互动网页</h1>
+          </div>
+          <nav class="progress" aria-label="当前流程">
+            <div class="progress-item active"><span>1</span>开始</div>
+            <div class="progress-item"><span>2</span>学习</div>
+            <div class="progress-item"><span>3</span>输入</div>
+            <div class="progress-item"><span>4</span>生成</div>
+            <div class="progress-item"><span>5</span>报告</div>
+          </nav>
         </header>
 
+        <section class="stepbar" aria-hidden="true">
+          <span>1. 开始</span>
+          <span>2. 学习</span>
+          <span>3. 输入</span>
+          <span>4. 生成</span>
+          <span>5. 报告</span>
+        </section>
+
         <section class="view active start-view" data-view="start">
-          <div class="intro">
-            <p class="label">Reverse Abstraction</p>
-            <h1>从一张抽象图，想象它的真实来处</h1>
-            <p class="lead">先把抽象终稿提炼成一份语义说明书，再把它转译为色面、结构与素描。</p>
+          <div class="hero-copy">
+            <div class="tags">
+              <b>反向推理</b>
+              <b>图生图</b>
+              <b>大师人格</b>
+            </div>
+            <h2>先画一张风格派，再倒推出它来自哪里。</h2>
+            <p>把一张抽象作品放进系统，倒推成结构草图、实体素描和写实候选，最后得到一份像 MBTI 一样的风格派人格报告。</p>
             <button class="btn primary" data-next="learn">开始</button>
           </div>
-          <div class="composition" aria-hidden="true">
-            <i class="bar vertical-a"></i>
-            <i class="bar vertical-b"></i>
-            <i class="bar horizontal-a"></i>
-            <i class="shape red"></i>
-            <i class="shape blue"></i>
-            <i class="shape yellow"></i>
-            <i class="grain"></i>
+          <div class="mondrian-panel" aria-hidden="true">
+            <i class="block red"></i>
+            <i class="block yellow"></i>
+            <i class="block blue"></i>
+            <i class="line v1"></i>
+            <i class="line v2"></i>
+            <i class="line h1"></i>
+            <i class="line h2"></i>
           </div>
         </section>
 
         <section class="view learn-view" data-view="learn">
           <div class="view-head">
             <div>
-              <p class="label">Learning</p>
-              <h2>学习：一次理解，三次转译</h2>
+              <p class="eyebrow">Step 1</p>
+              <h2>学习：系统如何评价一张风格派作品</h2>
             </div>
             <button class="btn primary" data-next="input">进入输入</button>
           </div>
-          <div class="learn-layout">
-            <article class="learn-main">
-              <p>
-                这个过程不是让模型每一步重新看图，而是先把第4张抽象终稿翻译成一份“中间语义说明书”。
-              </p>
-              <p>
-                后面的第3张、第2张、第1张都从这份说明书出发：同一个对象、同一个重心、同一组构图关系，只是抽象程度逐步回退。
-              </p>
+          <div class="score-layout">
+            <article class="score-card main-score">
+              <b>100</b>
+              <h3>总分不是排名，而是生成作品分析</h3>
+              <p>报告不判断“画得对不对”，而是用五个维度解释你的抽象作品如何接近风格派语言，以及它能怎样继续被修改。</p>
             </article>
-            <div class="learn-steps">
-              <article>
-                <b>01</b>
-                <h3>第4张：抽象终稿</h3>
-                <p>像站在艺术家的最后一张画前，先不急着命名，只记录色块、线条、留白和重心的证词。</p>
-              </article>
-              <article>
-                <b>02</b>
-                <h3>第3张：对象化色面</h3>
-                <p>同一份语义被第一次转译：几何仍在，色面仍在，但对象的轮廓开始从平面背后浮现。</p>
-              </article>
-              <article>
-                <b>03</b>
-                <h3>第2张：结构草图</h3>
-                <p>同一份语义被第二次转译：色彩退场，支撑、体量、连接和空隙像艺术家的分析线稿一样显影。</p>
-              </article>
-              <article>
-                <b>04</b>
-                <h3>第1张：具象素描</h3>
-                <p>同一份语义被第三次转译：对象重新获得轮廓和体积，但仍保持创作初稿的克制与概括。</p>
-              </article>
-            </div>
+            <article class="score-card">
+              <b>25</b>
+              <h3>风格派形式契合度</h3>
+              <p>水平/垂直、矩形、原色与非色、平面化、非对称平衡。</p>
+            </article>
+            <article class="score-card">
+              <b>25</b>
+              <h3>抽象转译逻辑</h3>
+              <p>是否能从现实对象提炼结构，而不是只贴颜色。</p>
+            </article>
+            <article class="score-card">
+              <b>20</b>
+              <h3>倒推可解释性</h3>
+              <p>色块、重心、支撑、空白是否能支持合理候选。</p>
+            </article>
+            <article class="score-card">
+              <b>20</b>
+              <h3>创作表达与互动性</h3>
+              <p>用户意图是否可被讲述，评价是否能激发二次修改。</p>
+            </article>
+            <article class="score-card">
+              <b>10</b>
+              <h3>展示留存完整度</h3>
+              <p>是否适合生成四联推演卡、作品墙或分享图。</p>
+            </article>
+            <article class="score-card rule-card">
+              <h3>评价规则</h3>
+              <p>不说“你画错了”；不把倒推结果说成事实；不鼓励上传私人信息；对公众作品使用鼓励性语言。</p>
+            </article>
           </div>
         </section>
 
-        <section class="view" data-view="input">
+        <section class="view input-view" data-view="input">
           <div class="view-head">
             <div>
-              <p class="label">Image Input</p>
-              <h2>拍摄或上传一张 4:3 画面</h2>
+              <p class="eyebrow">Step 2</p>
+              <h2>拍摄、上传，或直接画一张 4:3 作品</h2>
             </div>
-            <button class="btn ghost" data-next="learn">返回学习</button>
+            <div class="input-switch" role="group" aria-label="输入方式">
+              <button class="mode-btn active" id="modeCameraBtn" type="button">摄像头</button>
+              <button class="mode-btn" id="modeDrawBtn" type="button">作画</button>
+            </div>
           </div>
-
           <div class="input-layout">
-            <div class="media-box">
-              <video id="camera" autoplay playsinline muted></video>
-              <img id="preview" alt="已选择的图片" />
-              <div class="media-placeholder">等待摄像头画面，或上传照片</div>
+            <div class="input-workspace">
+              <div class="media-box input-mode active" data-input-mode="camera">
+                <video id="camera" autoplay playsinline muted></video>
+                <img id="preview" alt="已选择的图片" />
+                <div class="media-placeholder">等待摄像头画面，或上传照片</div>
+              </div>
+              <div class="draw-box input-mode" data-input-mode="draw">
+                <canvas id="drawCanvas" width="1024" height="768" aria-label="风格派作画画布"></canvas>
+              </div>
             </div>
             <aside class="tools">
-              <button class="btn primary" id="captureBtn">拍摄</button>
+              <button class="btn primary camera-tool" id="captureBtn">拍摄</button>
               <button class="btn secondary" id="uploadBtn">上传照片</button>
+              <button class="btn secondary draw-tool" id="clearCanvasBtn">清空画布</button>
+              <button class="btn primary draw-tool" id="useDrawingBtn">使用画作</button>
               <button class="btn primary" id="runBtn">开始生成</button>
               <button class="btn secondary" id="testBtn">测试 API</button>
               <button class="btn ghost" id="resetImageBtn">重新选择</button>
               <input id="fileInput" type="file" accept="image/*" />
-              <p class="status" id="statusText">外层屏幕为 16:9，摄像头与生成图保持 4:3。</p>
+              <p class="status" id="statusText">外层屏幕为 16:9，输入画面保持 4:3。</p>
             </aside>
           </div>
         </section>
 
-        <section class="view" data-view="process">
+        <section class="view process-view" data-view="process">
           <div class="view-head">
             <div>
-              <p class="label">Generation</p>
-              <h2>从第4张抽象终稿逆推到第1张素描</h2>
+              <p class="eyebrow">Step 3</p>
+              <h2>从抽象终稿倒推到现实候选</h2>
             </div>
             <button class="btn primary" data-next="result">查看报告</button>
           </div>
@@ -119,17 +150,19 @@
         <section class="view result-view" data-view="result">
           <div class="view-head compact">
             <div>
-              <p class="label">Curatorial Report</p>
+              <p class="eyebrow">Step 4</p>
               <h2 id="reportTitle">生成报告</h2>
             </div>
             <button class="btn ghost" id="restartBtn">重新开始</button>
           </div>
-
           <div class="result-board">
             <section class="result-gallery" id="resultGallery"></section>
             <section class="report-panel">
               <div class="personality-head">
-                <p class="report-subtitle" id="reportSubtitle">等待 LLM 撰写报告。</p>
+                <div>
+                  <p class="eyebrow">Artist MBTI</p>
+                  <p class="report-subtitle" id="reportSubtitle">等待 LLM 撰写报告。</p>
+                </div>
                 <div class="match-badge">
                   <span id="matchPercent">--</span>
                   <small>匹配度</small>

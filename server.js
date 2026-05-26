@@ -1,7 +1,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const { analyzeImage, generateImage, buildReport, sendOk, sendError, imageModel } = require("./api/_lib");
+const { analyzeImage, editImage, buildReport, sendOk, sendError, imageModel } = require("./api/_lib");
 
 const root = __dirname;
 const publicDir = path.join(root, "public");
@@ -47,6 +47,7 @@ function serveStatic(req, res) {
     res.end("Forbidden");
     return;
   }
+
   fs.readFile(filePath, (error, data) => {
     if (error) {
       res.writeHead(404);
@@ -64,26 +65,33 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req);
       return sendOk(res, await analyzeImage(body.imageBase64));
     }
+
     if (req.method === "POST" && req.url === "/api/generate-stage") {
       const body = await readBody(req);
-      const title = body.title || "生成图";
-      const prompt = body.prompt || "抽象艺术创作流程逆推图像，4:3 横构图，绝对无文字。";
-      return sendOk(res, { title, imageBase64: await generateImage(prompt, title) });
+      const title = body.title || "图生图倒推";
+      const prompt =
+        body.prompt ||
+        "根据用户作品进行风格派倒推图生图。保留原图构图关系、重心、比例和空间节奏，生成阶段性推演图，绝对无文字。";
+      const imageBase64 = await editImage(body.imageBase64, prompt, title);
+      return sendOk(res, { title, imageBase64 });
     }
+
     if (req.method === "POST" && req.url === "/api/report") {
       const body = await readBody(req);
       return sendOk(res, await buildReport(body.analysis || {}, body.stages || []));
     }
+
     if (req.method === "POST" && req.url === "/api/test-image") {
       const body = await readBody(req);
       const prompts = body.stagePrompts || {};
       const prompt =
-        prompts.stage_3_objectified_color_image ||
-        prompts.stage3 ||
-        "对象化色面图，基于抽象图语义生成，4:3 横构图，绝对无文字。";
-      const imageBase64 = await generateImage(prompt, "第3张：对象化色面图测试");
+        prompts.stage_2_structural_sketch ||
+        prompts.stage_1_representational_sketch ||
+        "请根据用户作品生成一张黑白结构草图，保留原图构图关系、重心、比例和方向，绝对无文字。";
+      const imageBase64 = await editImage(body.imageBase64, prompt, "图生图测试");
       return sendOk(res, { imageCount: imageBase64 ? 1 : 0, model: imageModel });
     }
+
     return serveStatic(req, res);
   } catch (error) {
     return sendError(res, error);
@@ -92,5 +100,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(port, () => {
   console.log(`Static app running at http://localhost:${port}`);
-  console.log("API provider: OpenAI");
+  console.log("API provider: OpenAI image edits");
 });

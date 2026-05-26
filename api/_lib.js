@@ -47,9 +47,9 @@ function stripJsonFence(text) {
     .trim();
 }
 
-async function openaiJson(path, body) {
+async function openaiJson(endpoint, body) {
   requireKey();
-  const response = await fetch(`${OPENAI_API_URL}${path}`, {
+  const response = await fetch(`${OPENAI_API_URL}${endpoint}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -73,57 +73,89 @@ async function openaiJson(path, body) {
   return data;
 }
 
+async function openaiMultipart(endpoint, form) {
+  requireKey();
+  const response = await fetch(`${OPENAI_API_URL}${endpoint}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}` },
+    body: form,
+  });
+
+  const text = await response.text();
+  let data = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = { raw: text };
+  }
+
+  if (!response.ok) {
+    const message = data.error?.message || data.error || text;
+    throw new Error(`${response.status} ${message}`);
+  }
+  return data;
+}
+
+async function imageToBlob(image) {
+  const normalized = normalizeImageInput(image);
+  if (normalized.startsWith("data:image/")) {
+    const match = normalized.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+    if (!match) throw new Error("Invalid data URL image.");
+    return new Blob([Buffer.from(match[2], "base64")], { type: match[1] });
+  }
+
+  const response = await fetch(normalized);
+  if (!response.ok) throw new Error(`Failed to fetch source image: ${response.status}`);
+  const contentType = response.headers.get("content-type") || "image/png";
+  return new Blob([Buffer.from(await response.arrayBuffer())], { type: contentType });
+}
+
 function buildVisionPrompt() {
   return `
-你是“抽象艺术创作逆推实验室”的视觉分析引擎。请把用户上传的抽象图理解为第4张抽象终稿，并输出一份用于后续三次文生图的“中间语义说明书”。
+你是“风格派倒推实验室”的视觉分析引擎。请基于用户上传的作品图像进行分析。作品可能来自手绘、拼贴、拼豆、色块材料或其他手作媒介。你的任务不是判断作品好坏，而是提取它与风格派相关的形式特征，并为后续图生图倒推提供结构化证据。
 
 重要限制：
-- 不要把画面解释成积木、乐高、玩具砖、拼装玩具或儿童玩具。
-- 不要默认解释成椅子、红蓝椅、家具或室内结构，除非证据非常明确。
-- 块状结构可以来自动物、植物、器物、建筑、人体姿态、机械部件、风景切面、工具或抽象材料关系。
+- 不要把画面解释成积木、乐高、玩具砖或儿童玩具。
+- 不要默认解释成椅子、红蓝椅、家具或室内结构，除非视觉证据非常明确。
+- 不要给出唯一真相，只给“可能来源”和“视觉线索支持”。
+- 候选来源可以是动物、建筑、家具、机器、风景、人体姿态、器物、植物或工具，但必须由图像中的重心、色块、线条和空白支持。
 
-流程：第4张抽象终稿 -> 结构化语义说明书 -> 第3张对象化色面图 -> 第2张结构草图 -> 第1张具象素描。
-关键原则：一次理解，三次转译。后三张图都只基于这份语义说明书生成。
+请只输出 JSON，不要输出散文。若无法确定，请用 unknown 或给出 2-3 个候选，不要编造唯一答案。
 
-请只输出 JSON：
+输出格式：
 {
-  "semanticWords": ["5-10 个中文词语"],
+  "image_quality": {
+    "usable": true,
+    "issues": ["透视倾斜", "边缘遮挡", "光照不均"],
+    "preprocess_needed": ["crop", "perspective_correction", "background_removal"]
+  },
+  "formal_features": {
+    "dominant_lines": ["horizontal", "vertical"],
+    "diagonal_presence": "none / slight / strong",
+    "shape_units": ["rectangle", "square", "thin_bar"],
+    "color_palette": ["red", "yellow", "blue", "black", "white", "gray"],
+    "negative_space": "low / medium / high",
+    "asymmetrical_balance": "low / medium / high"
+  },
+  "de_stijl_scores": {
+    "orthogonal_order": 0,
+    "primary_color_control": 0,
+    "flatness": 0,
+    "abstraction_depth": 0,
+    "dynamic_tension": 0
+  },
+  "reverse_clues": [
+    { "visual_clue": "large horizontal rectangle", "possible_meaning": "body / table top / building facade", "confidence": 0.0 }
+  ],
+  "candidate_source_types": [
+    { "type": "animal / architecture / furniture / machine / landscape / human pose", "confidence": 0.0, "reason": "" }
+  ],
+  "semanticWords": ["5-10 个中文关键词"],
   "semanticSentence": "一句有画面感的语义总结",
-  "image_summary": {
-    "abstraction_level": "low / medium / high / extreme",
-    "overall_description": "",
-    "visual_center": "",
-    "balance_type": "",
-    "spatial_rhythm": "",
-    "dominant_directions": ["horizontal", "vertical", "diagonal"]
-  },
-  "formal_elements": {
-    "major_blocks": [],
-    "major_lines": [],
-    "negative_space": { "amount": "", "main_position": "", "possible_meaning": "" }
-  },
-  "candidate_sources": [],
-  "selected_source": { "name": "", "reason": "", "confidence": 0.0 },
-  "possibleOrigin": "",
-  "element_mapping": [],
-  "generation_constraints": {
-    "must_preserve": [],
-    "may_change": [],
-    "stage_targets": {
-      "stage_3_objectified_color_image": "",
-      "stage_2_structural_sketch": "",
-      "stage_1_representational_sketch": ""
-    }
-  },
-  "prompt_base": {
-    "one_sentence_subject_summary": "",
-    "composition_summary": "",
-    "object_structure_summary": ""
-  },
   "stagePrompts": {
-    "stage_3_objectified_color_image": "对象化色面图提示词。必须保留原图构图语义，绝对无文字。",
-    "stage_2_structural_sketch": "结构草图提示词。必须保留原图结构关系，绝对无文字。",
-    "stage_1_representational_sketch": "具象素描提示词。必须保留同一对象类别，绝对无文字。"
+    "stage_2_structural_sketch": "图生图结构草图提示词，必须保留原图比例、重心、方向和空白，绝对无文字。",
+    "stage_1_representational_sketch": "图生图实体素描提示词，必须从原图色块与线条恢复对象体量，绝对无文字。",
+    "stage_realistic_candidate": "图生图写实候选提示词，必须保留原图构图逻辑，绝对无文字。"
   },
   "shortComment": ""
 }`;
@@ -144,7 +176,7 @@ async function analyzeImage(imageBase64) {
       },
     ],
     max_tokens: 2048,
-    temperature: 0.75,
+    temperature: 0.6,
     response_format: { type: "json_object" },
   });
 
@@ -154,39 +186,45 @@ async function analyzeImage(imageBase64) {
 }
 
 function buildImagePrompt(prompt, title) {
-  return `${title}
-你正在执行“抽象艺术创作流程逆推”任务。必须从同一份语义说明书出发，保留原图构图语义、重心、比例节奏、留白、主要色块关系和对象类别，不能生成无关的新物体或新场景。
+  return `
+${title}
+
+你正在执行“风格派倒推实验室”的图生图任务。请把输入图片视为同一件抽象作品的最终形态，不要自由发明无关场景。必须从输入图片本身出发，保留它的主要色块位置、横竖斜关系、重心、比例、留白、疏密节奏和整体姿态，只改变抽象程度与表现方式。
 
 硬性约束：
-1. 必须基于 selected_source、element_mapping、prompt_base、must_preserve。
-2. 画面里绝对不能出现任何文字、字母、数字、符号、标牌、标签、签名、水印、logo、伪文字。
-3. 不要积木、乐高、玩具砖、拼装玩具或儿童玩具。
-4. 不要默认生成椅子、红蓝椅、家具；除非 selected_source 明确选择这类对象。
+1. 画面中绝对不能出现任何文字、字母、数字、符号、标牌、标签、签名、水印、logo 或 UI。
+2. 不要生成积木、乐高、玩具砖、儿童玩具或拼装玩具。
+3. 不要默认生成椅子、红蓝椅、家具或室内结构，除非输入图像中有极明确证据。
+4. 生成内容必须和输入图片的结构有关，不能换成完全无关的物体或新场景。
+5. 构图保持 4:3 横构图感，背景简洁，展览级审美。
 
+阶段要求：
 ${prompt}
 
-4:3 横构图感，纯图像，无文字，无字母，无数字，无符号，无标牌，无签名，无水印，无 UI，无边框。`;
+再次确认：纯图像，无文字、无字母、无数字、无符号、无标牌、无签名、无水印。
+`;
 }
 
-async function generateImage(prompt, title) {
-  const data = await openaiJson("/images/generations", {
-    model: imageModel,
-    prompt: buildImagePrompt(prompt, title),
-    size: imageSize,
-    quality: "medium",
-    n: 1,
-  });
+async function editImage(imageBase64, prompt, title) {
+  const sourceImage = await imageToBlob(imageBase64);
+  const form = new FormData();
+  form.append("model", imageModel);
+  form.append("image", sourceImage, "source.png");
+  form.append("prompt", buildImagePrompt(prompt, title));
+  form.append("size", imageSize);
+  form.append("n", "1");
 
+  const data = await openaiMultipart("/images/edits", form);
   const result = data.data?.[0];
   if (!result?.b64_json && !result?.url) {
-    throw new Error("OpenAI image model returned no image.");
+    throw new Error("OpenAI image edit model returned no image.");
   }
   return result.b64_json ? `data:image/png;base64,${result.b64_json}` : result.url;
 }
 
 async function buildReport(analysis, stages) {
   const prompt = `
-你是风格派互动展的讲解员。请根据作品分析结果，为用户匹配一个“风格派大师人格”。语气要像博物馆互动装置：友好、准确、有启发，不要像考试打分。
+你是风格派互动展的讲解员。请根据作品分析结果，为用户生成一份“作品分析 + 风格派大师人格”报告。语气像博物馆互动装置：友好、准确、有启发，不像考试打分。
 
 候选人格：
 1. 蒙德里安｜秩序平衡型：重视水平/垂直、纯粹关系、非对称平衡、克制用色。
@@ -195,13 +233,32 @@ async function buildReport(analysis, stages) {
 4. 范德莱克｜色面叙事型：从具象对象出发，用平面色块保留叙事痕迹。
 5. 范通格洛｜比例理性型：偏向数学关系、比例秩序、冷静的结构推演。
 
+语言模型评价标准，总分 100 分，用于生成“作品分析”而不是给用户排名：
+- 风格派形式契合度 25：水平/垂直、矩形、原色与非色、平面化、非对称平衡。
+- 抽象转译逻辑 25：是否能从现实对象提炼结构，而不是只贴颜色。
+- 倒推可解释性 20：色块、重心、支撑、空白是否能支持合理候选。
+- 创作表达与互动性 20：用户意图是否可被讲述，评价是否能激发二次修改。
+- 展示留存完整度 10：是否适合生成四联推演卡、作品墙或分享图。
+
+评价时必须遵守：
+1. 不说“你画错了”，改说“如果想更接近某某大师，可以尝试……”。
+2. 不把倒推结果说成事实，只说“可能来源”“视觉线索支持”。
+3. 不鼓励上传人脸、身份证、票据等私人信息。
+4. 对儿童或普通公众作品使用鼓励性语言，对课程汇报版本可增加设计术语。
+
+报告要求：
+- 必须且只能匹配一位 persona。
+- dimensions 必须对应上面的五项评分，value 使用每项折算后的 0-100 展示值，note 写一句解释。
+- narrative 要像展览文案，有趣但具体。
+- next_interaction 必须给出一个可以继续修改作品的建议。
+
 作品分析：
 ${JSON.stringify(analysis, null, 2)}
 
 生成链路：
 ${JSON.stringify(stages, null, 2)}
 
-必须且只能匹配一个 persona。严格返回 JSON：
+严格返回 JSON：
 {
   "persona": "",
   "match_score": 0,
@@ -214,15 +271,22 @@ ${JSON.stringify(stages, null, 2)}
   },
   "next_interaction": "",
   "dimensions": [
-    { "label": "秩序", "value": 0 },
-    { "label": "动态", "value": 0 },
-    { "label": "空间", "value": 0 },
-    { "label": "色面", "value": 0 },
-    { "label": "比例", "value": 0 },
-    { "label": "叙事", "value": 0 }
+    { "label": "形式", "value": 0, "note": "风格派形式契合度 /25" },
+    { "label": "转译", "value": 0, "note": "抽象转译逻辑 /25" },
+    { "label": "倒推", "value": 0, "note": "倒推可解释性 /20" },
+    { "label": "互动", "value": 0, "note": "创作表达与互动性 /20" },
+    { "label": "留存", "value": 0, "note": "展示留存完整度 /10" }
   ],
-  "artistMatches": [],
-  "stageCaptions": { "original": "", "stage3": "", "stage2": "", "stage1": "" },
+  "artistMatches": [
+    { "name": "", "score": 0, "trait": "", "note": "" }
+  ],
+  "stageCaptions": {
+    "original": "",
+    "stage2": "",
+    "stage1": "",
+    "realistic": "",
+    "stage3": ""
+  },
   "title": "",
   "subtitle": "",
   "mbti": { "code": "", "name": "", "summary": "" },
@@ -262,7 +326,7 @@ function sendError(res, error) {
 
 module.exports = {
   analyzeImage,
-  generateImage,
+  editImage,
   buildReport,
   sendOk,
   sendError,
