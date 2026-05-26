@@ -709,9 +709,10 @@ h3 {
 .media-box {
   position: relative;
   min-height: 0;
-  height: 100%;
-  width: auto;
+  width: 100%;
+  height: auto;
   max-width: 100%;
+  max-height: 100%;
   aspect-ratio: 4 / 3;
   align-self: center;
   justify-self: center;
@@ -723,9 +724,10 @@ h3 {
 .draw-box {
   position: relative;
   min-height: 0;
-  height: 100%;
-  width: auto;
+  width: 100%;
+  height: auto;
   max-width: 100%;
+  max-height: 100%;
   aspect-ratio: 4 / 3;
   border: 3px solid var(--line);
   background: var(--paper-2);
@@ -902,7 +904,8 @@ body.draw-active .draw-controls {
   border: 3px solid var(--line);
   background: var(--paper-2);
   display: grid;
-  grid-template-rows: minmax(0, 1fr) 76px;
+  grid-template-rows: auto 76px;
+  align-content: center;
   overflow: hidden;
 }
 
@@ -912,6 +915,7 @@ body.draw-active .draw-controls {
 
 .stage-image {
   min-height: 0;
+  width: 100%;
   aspect-ratio: 4 / 3;
   border-bottom: 3px solid var(--line);
   background: var(--paper);
@@ -920,6 +924,7 @@ body.draw-active .draw-controls {
 .stage-image img {
   width: 100%;
   height: 100%;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
   display: block;
 }
@@ -982,20 +987,21 @@ body.draw-active .draw-controls {
   border: 3px solid var(--line);
   background: var(--paper-2);
   display: grid;
-  grid-template-columns: 136px minmax(0, 1fr);
+  grid-template-columns: 150px minmax(0, 1fr);
   grid-template-rows: 1fr;
   overflow: hidden;
 }
 
 .result-image-card img {
   width: 100%;
-  height: 100%;
+  height: auto;
   min-height: 0;
   aspect-ratio: 4 / 3;
   object-fit: cover;
   border-right: 3px solid var(--line);
   border-bottom: 0;
   background: var(--paper);
+  align-self: center;
 }
 
 .result-image-card div {
@@ -1014,7 +1020,7 @@ body.draw-active .draw-controls {
   color: var(--paper-2);
   background: var(--blue);
   border: 2px solid var(--line);
-  min-width: 74px;
+  min-width: 92px;
   padding: 4px 8px;
   font-size: 0.72rem;
   font-weight: 950;
