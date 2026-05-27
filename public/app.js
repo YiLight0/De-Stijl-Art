@@ -6,8 +6,6 @@ const mediaBox = document.querySelector(".media-box");
 const captureBtn = document.querySelector("#captureBtn");
 const uploadBtn = document.querySelector("#uploadBtn");
 const runBtn = document.querySelector("#runBtn");
-const testBtn = document.querySelector("#testBtn");
-const resetImageBtn = document.querySelector("#resetImageBtn");
 const clearCanvasBtn = document.querySelector("#clearCanvasBtn");
 const useDrawingBtn = document.querySelector("#useDrawingBtn");
 const modeCameraBtn = document.querySelector("#modeCameraBtn");
@@ -40,21 +38,21 @@ const stageMeta = [
     title: "结构草图",
     note: "抽出骨架、支撑、重心与空白",
     fallbackPrompt:
-      "请根据这张风格派抽象图像，倒推出它可能来源于的现实对象结构。不要直接生成写实图像。生成一张黑白结构性草图：将图中的矩形色块、水平线、垂直线、视觉重心和空白区转译为可能的对象骨架。保留抽象图中的主要比例关系、方向关系和空间布局。画面应像艺术家从风格派构成反推出来的分析草图，线条清晰，少量辅助线，白色背景，铅笔或炭笔风格。绝对不要出现文字。",
+      "生成黑白结构性草图。请把输入图中的色块、线条、重心和空白转译为可能对象的骨架、支撑、连接关系和主要轮廓。不要写实，不要继续纯抽象，白色背景，铅笔或炭笔线稿，绝对不要出现文字。",
   },
   {
     key: "stage_1_representational_sketch",
-    title: "实体素描",
-    note: "恢复体积，但保留原图比例与姿态",
+    title: "具象素描",
+    note: "必须画出可识别的真实对象",
     fallbackPrompt:
-      "请将这张风格派抽象构成倒推为一个可能的现实对象素描。根据图中的大色块判断主体体块，根据竖向元素判断支撑结构，根据横向元素判断身体、梁、桌面或主要延展方向，根据小色块判断头部、关节、窗洞或局部节点。生成一张介于结构草图和具象素描之间的图像。对象需要具有真实的体积和轮廓，但仍保留原始风格派图像的构图比例和重心关系。黑白铅笔素描，简洁背景。绝对不要出现文字。",
+      "生成一张具象素描。它必须是一个可识别的现实对象或场景，而不是抽象几何图。请根据输入图的色块、支撑、重心和方向恢复对象的外轮廓、体积、局部结构和少量明暗。保留原图构图关系，但要明显更具象、更像艺术家观察现实对象时的铅笔素描。禁止生成抽象构成、色块拼贴、几何海报或文字。",
   },
   {
     key: "stage_realistic_candidate",
     title: "写实候选",
     note: "把相同构图线索转译成可能来源",
     fallbackPrompt:
-      "请根据这张风格派抽象图像推测它可能来自什么现实对象，并生成一张可能的写实候选图像。必须保留原图中的主要构图逻辑：横向与竖向关系、主体重心、块面比例、左右疏密关系和空间节奏。将矩形色块转译为真实对象的身体、结构、支撑、开口或局部部件。不要宣称唯一答案，图像只呈现一个合理候选。写实素描或低饱和写实摄影感，真实材质，简洁背景。绝对不要出现文字。",
+      "生成一张可能来源的写实候选图像。必须保留输入图的主要构图逻辑：重心、比例、方向、左右疏密和空间节奏。将色块转译为真实对象的身体、结构、支撑、开口或局部部件。不要宣称唯一答案，只呈现一个视觉线索支持的候选。简洁背景，绝对不要出现文字。",
   },
 ];
 
@@ -95,7 +93,7 @@ function setInputMode(mode) {
   modeCameraBtn.classList.toggle("active", mode === "camera");
   modeDrawBtn.classList.toggle("active", mode === "draw");
   document.body.classList.toggle("draw-active", mode === "draw");
-  setStatus(mode === "draw" ? "在画布上画一张抽象作品，然后点击“使用画作”。" : "摄像头模式：拍摄或上传一张 4:3 作品。");
+  setStatus(mode === "draw" ? "在方形画布上画一张抽象作品，然后点击“使用画作”。" : "摄像头模式：拍摄或上传一张方形作品。");
   if (mode === "camera") startCamera();
 }
 
@@ -104,9 +102,9 @@ async function startCamera() {
   try {
     stream = await navigator.mediaDevices.getUserMedia({
       video: {
-        width: { ideal: 1280 },
-        height: { ideal: 960 },
-        aspectRatio: { ideal: 1.333333 },
+        width: { ideal: 1024 },
+        height: { ideal: 1024 },
+        aspectRatio: { ideal: 1 },
         facingMode: "environment",
       },
       audio: false,
@@ -124,6 +122,27 @@ function setSelectedImage(dataUrl) {
   setStatus("图片已准备好，可以开始生成。");
 }
 
+function imageToSquareDataUrl(source, size = 1024) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const side = Math.min(img.naturalWidth, img.naturalHeight);
+      const sx = (img.naturalWidth - side) / 2;
+      const sy = (img.naturalHeight - side) / 2;
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const context = canvas.getContext("2d");
+      context.fillStyle = "#f7fbfd";
+      context.fillRect(0, 0, size, size);
+      context.drawImage(img, sx, sy, side, side, 0, 0, size, size);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = reject;
+    img.src = source;
+  });
+}
+
 function fallbackSvg(variant) {
   const colors = [
     ["#f7fbfd", "#111417", "#ef2c2f", "#0877c9", "#f0c929"],
@@ -132,14 +151,14 @@ function fallbackSvg(variant) {
   ][variant] || ["#f7fbfd", "#111417", "#ef2c2f", "#0877c9", "#f0c929"];
   const [bg, ink, red, blue, yellow] = colors;
   return `data:image/svg+xml;utf8,${encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768">
-      <rect width="1024" height="768" fill="${bg}"/>
-      <rect x="118" y="94" width="52" height="548" fill="${ink}"/>
-      <rect x="118" y="284" width="784" height="46" fill="${ink}"/>
-      <rect x="420" y="94" width="32" height="548" fill="${ink}"/>
-      <rect x="520" y="138" width="258" height="186" fill="${blue}"/>
-      <rect x="196" y="410" width="190" height="132" fill="${red}"/>
-      <rect x="742" y="548" width="162" height="116" fill="${yellow}"/>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+      <rect width="1024" height="1024" fill="${bg}"/>
+      <rect x="120" y="110" width="58" height="760" fill="${ink}"/>
+      <rect x="120" y="370" width="790" height="58" fill="${ink}"/>
+      <rect x="440" y="110" width="42" height="760" fill="${ink}"/>
+      <rect x="536" y="150" width="260" height="240" fill="${blue}"/>
+      <rect x="210" y="520" width="210" height="160" fill="${red}"/>
+      <rect x="760" y="720" width="150" height="150" fill="${yellow}"/>
     </svg>
   `)}`;
 }
@@ -198,7 +217,7 @@ function renderReportText() {
   const score = reportResult?.match_score || reportResult?.matchPercent || 0;
 
   reportTitle.textContent = reportResult?.title || (persona ? `你是${persona}` : "生成报告");
-  reportSubtitle.textContent = reportResult?.subtitle || words || "等待 LLM 撰写报告。";
+  reportSubtitle.textContent = reportResult?.subtitle || words || "报告会在生成完成后自动补充；你可以先查看已有画作。";
   matchPercent.textContent = score ? `${score}%` : "--";
   mbtiCode.textContent = reportResult?.mbti?.code || "STIJL";
   mbtiName.textContent = reportResult?.mbti?.name || persona || "艺术家人格生成中";
@@ -207,7 +226,7 @@ function renderReportText() {
     reportResult?.why?.join(" ") ||
     reportResult?.primaryArtist?.reason ||
     analysisResult?.semanticSentence ||
-    "生成完成后，这里会出现一份更详细的艺术解读。";
+    "系统会根据作品结构、色块、倒推线索和生成链路写出分析。";
 
   const dimensions = reportResult?.dimensions || [
     { label: "形式", value: 0 },
@@ -303,9 +322,13 @@ async function generateStagesOneByOne() {
     });
     generatedStages[index] = result;
     renderStages();
+    if (views.find((view) => view.dataset.view === "result")?.classList.contains("active")) {
+      renderResult();
+    }
   }
 
   setStatus("三张图已生成完成，正在撰写作品分析报告。");
+  setView("result");
   reportResult = await postJson("/api/report", {
     analysis: analysisResult,
     stages: stageCards().map(({ title, note }) => ({ title, note })),
@@ -314,49 +337,30 @@ async function generateStagesOneByOne() {
   setStatus("图片与报告已生成完成。");
 }
 
-async function runApi({ testOnly = false } = {}) {
+async function runApi() {
   if (!selectedImage) {
     setStatus(inputMode === "draw" ? "请先点击“使用画作”。" : "请先拍摄或上传一张图片。");
     return;
   }
 
   runBtn.disabled = true;
-  if (testBtn) testBtn.disabled = true;
   setError("");
-  setStatus(testOnly ? "正在测试 API..." : "正在提取风格派形式特征...");
+  setStatus("正在提取风格派形式特征...");
 
   try {
-    if (!testOnly) {
-      generatedStages = [];
-      reportResult = null;
-      setView("process");
-      renderStages();
-    }
-
+    generatedStages = [];
+    reportResult = null;
+    setView("process");
+    renderStages();
     analysisResult = await postJson("/api/analyze", { imageBase64: selectedImage });
-
-    if (testOnly) {
-      const testResult = await postJson("/api/test-image", {
-        imageBase64: selectedImage,
-        stagePrompts: analysisResult.stagePrompts,
-      });
-      const reportTest = await postJson("/api/report", {
-        analysis: analysisResult,
-        stages: [{ title: "测试图", note: "API 测试" }],
-      });
-      setStatus(`测试成功：生图模型返回 ${testResult.imageCount} 张图，报告模型返回《${reportTest.title || "测试报告"}》。`);
-      return;
-    }
-
     await generateStagesOneByOne();
   } catch (error) {
     const message = error instanceof Error ? error.message : "API 调用失败。";
     setStatus(message.split("\n")[0]);
-    setError(`生成失败\n\n${message}\n\n请检查：\n1. Vercel 环境变量 OPENAI_API_KEY 是否配置在当前环境。\n2. Vercel 是否已重新部署。\n3. /api/analyze、/api/generate-stage、/api/report 是否返回 500 或超时。\n4. OpenAI 账户额度、项目权限或模型名是否可用。\n5. 图生图模型是否支持当前 OPENAI_IMAGE_SIZE。`);
-    if (!testOnly) renderStages();
+    setError(`生成失败\n\n${message}\n\n请检查：\n1. OPENAI_API_KEY 是否配置。\n2. 服务是否已重新部署。\n3. /api/analyze、/api/generate-stage、/api/report 是否返回 500 或超时。\n4. OpenAI 账户额度、项目权限或模型名是否可用。\n5. 图生图模型是否支持当前 OPENAI_IMAGE_SIZE。`);
+    renderStages();
   } finally {
     runBtn.disabled = false;
-    if (testBtn) testBtn.disabled = false;
   }
 }
 
@@ -368,7 +372,7 @@ function resetInput() {
   setError("");
   preview.removeAttribute("src");
   mediaBox.classList.remove("has-image");
-  setStatus("外层屏幕为 16:9，输入画面保持 4:3。");
+  setStatus("外层屏幕为 16:9，输入画面为方形。");
   renderResult();
 }
 
@@ -377,26 +381,14 @@ function captureCamera() {
     setStatus("摄像头画面还没有准备好。");
     return;
   }
-  const sourceRatio = camera.videoWidth / camera.videoHeight;
-  const targetRatio = 4 / 3;
-  let sx = 0;
-  let sy = 0;
-  let sw = camera.videoWidth;
-  let sh = camera.videoHeight;
-
-  if (sourceRatio > targetRatio) {
-    sw = camera.videoHeight * targetRatio;
-    sx = (camera.videoWidth - sw) / 2;
-  } else {
-    sh = camera.videoWidth / targetRatio;
-    sy = (camera.videoHeight - sh) / 2;
-  }
-
+  const side = Math.min(camera.videoWidth, camera.videoHeight);
+  const sx = (camera.videoWidth - side) / 2;
+  const sy = (camera.videoHeight - side) / 2;
   const canvas = document.createElement("canvas");
   canvas.width = 1024;
-  canvas.height = 768;
+  canvas.height = 1024;
   const context = canvas.getContext("2d");
-  context.drawImage(camera, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+  context.drawImage(camera, sx, sy, side, side, 0, 0, canvas.width, canvas.height);
   setSelectedImage(canvas.toDataURL("image/png"));
 }
 
@@ -441,10 +433,6 @@ function setupDrawing() {
     event.preventDefault();
   }
 
-  function end() {
-    drawing = false;
-  }
-
   clear();
   colorSwatches?.addEventListener("click", (event) => {
     const button = event.target.closest("[data-color]");
@@ -463,7 +451,9 @@ function setupDrawing() {
   });
   drawCanvas.addEventListener("pointerdown", begin);
   drawCanvas.addEventListener("pointermove", move);
-  window.addEventListener("pointerup", end);
+  window.addEventListener("pointerup", () => {
+    drawing = false;
+  });
   clearCanvasBtn.addEventListener("click", () => {
     clear();
     setStatus("画布已清空。");
@@ -486,13 +476,17 @@ fileInput.addEventListener("change", () => {
   const file = fileInput.files?.[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = () => setSelectedImage(String(reader.result));
+  reader.onload = async () => {
+    try {
+      setSelectedImage(await imageToSquareDataUrl(String(reader.result)));
+    } catch {
+      setSelectedImage(String(reader.result));
+    }
+  };
   reader.readAsDataURL(file);
 });
 
 runBtn.addEventListener("click", () => runApi());
-if (testBtn) testBtn.addEventListener("click", () => runApi({ testOnly: true }));
-if (resetImageBtn) resetImageBtn.addEventListener("click", resetInput);
 document.querySelector("#restartBtn").addEventListener("click", () => {
   resetInput();
   setView("start");
