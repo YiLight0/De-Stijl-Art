@@ -318,7 +318,7 @@ The user's uploaded image is already the final De Stijl abstraction, not the sta
 - Summary: ${sentence}
 
 Generate four panels in a strict 2 by 2 grid with thin neutral dividers and no text:
-Top left panel: the final De Stijl abstraction, matching the user's uploaded final artwork as closely as possible from the analysis: primary colors and neutrals, black vertical and horizontal bars, asymmetrical balance.
+Top left panel: a simple placeholder-like final De Stijl abstraction based on the analysis. This panel will be replaced in the interface by the user's original uploaded final artwork, so do not spend detail here.
 Top right panel: geometric restoration, where the abstract color blocks begin to become object-like masses while still geometric and flat.
 Bottom left panel: structural analysis drawing of the inferred object, showing axes, supports, joints, main silhouette and construction lines.
 Bottom right panel: realistic observation sketch of the possible original real object or scene, pencil drawing, recognizable, no abstraction.
@@ -371,7 +371,8 @@ async function generateQuadOnce() {
     prompt: buildQuadPrompt(analysisResult),
   });
   const quadrants = await cropQuadrants(result.imageBase64);
-  generatedStages = quadrants.map((imageBase64, index) => ({
+  const stageImages = [selectedImage, quadrants[1], quadrants[2], quadrants[3]];
+  generatedStages = stageImages.map((imageBase64, index) => ({
     ...stageMeta[index],
     imageBase64,
     pending: false,
