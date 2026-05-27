@@ -7,7 +7,7 @@ const apiKey = process.env.OPENAI_API_KEY || readEnvFile("OPENAI_API_KEY");
 const visionModel = process.env.OPENAI_VISION_MODEL || readEnvFile("OPENAI_VISION_MODEL") || "gpt-4.1";
 const reportModel = process.env.OPENAI_REPORT_MODEL || readEnvFile("OPENAI_REPORT_MODEL") || "gpt-4.1";
 const imageModel = process.env.OPENAI_IMAGE_MODEL || readEnvFile("OPENAI_IMAGE_MODEL") || "gpt-image-1";
-const imageSize = process.env.OPENAI_IMAGE_SIZE || readEnvFile("OPENAI_IMAGE_SIZE") || "1024x1024";
+const imageSize = process.env.OPENAI_IMAGE_SIZE || readEnvFile("OPENAI_IMAGE_SIZE") || "1536x1024";
 
 function readEnvFile(name) {
   const root = path.resolve(__dirname, "..");
@@ -196,7 +196,7 @@ ${title}
 2. 不要生成积木、乐高、玩具砖、儿童玩具或拼装玩具。
 3. 不要默认生成椅子、红蓝椅、家具或室内结构，除非输入图像中有极明确证据。
 4. 生成内容必须和输入图片的结构有关，不能换成完全无关的物体或新场景。
-5. 构图保持 1:1 方形构图，背景简洁，展览级审美。
+5. 构图保持横向 4:3 画面感，背景简洁，展览级审美。
 6. 如果阶段标题或阶段要求包含“具象素描”，必须生成可识别的现实对象素描，不能继续生成抽象几何画、色块构成或风格派海报。
 
 阶段要求：
@@ -204,6 +204,37 @@ ${prompt}
 
 再次确认：纯图像，无文字、无字母、无数字、无符号、无标牌、无签名、无水印。
 `;
+}
+
+function buildTextImagePrompt(prompt, title) {
+  return `
+${title}
+
+${prompt}
+
+Hard rules:
+- No visible text anywhere in the image.
+- No letters, numbers, captions, labels, signatures, logos, UI, watermarks, or title blocks.
+- Pure image only.
+- Keep a clean museum worksheet look with thin panel dividers only.
+- The whole image is one coherent 2 by 2 grid, landscape 4:3 overall.
+`;
+}
+
+async function generateImage(prompt, title) {
+  const data = await openaiJson("/images/generations", {
+    model: imageModel,
+    prompt: buildTextImagePrompt(prompt, title),
+    size: imageSize,
+    quality: "medium",
+    n: 1,
+  });
+
+  const result = data.data?.[0];
+  if (!result?.b64_json && !result?.url) {
+    throw new Error("OpenAI image model returned no image.");
+  }
+  return result.b64_json ? `data:image/png;base64,${result.b64_json}` : result.url;
 }
 
 async function editImage(imageBase64, prompt, title) {
@@ -327,6 +358,7 @@ function sendError(res, error) {
 
 module.exports = {
   analyzeImage,
+  generateImage,
   editImage,
   buildReport,
   sendOk,

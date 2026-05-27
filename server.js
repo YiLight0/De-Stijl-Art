@@ -1,7 +1,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const { analyzeImage, editImage, buildReport, sendOk, sendError, imageModel } = require("./api/_lib");
+const { analyzeImage, editImage, generateImage, buildReport, sendOk, sendError, imageModel } = require("./api/_lib");
 
 const root = __dirname;
 const publicDir = path.join(root, "public");
@@ -68,11 +68,12 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "POST" && req.url === "/api/generate-stage") {
       const body = await readBody(req);
-      const title = body.title || "图生图倒推";
-      const prompt =
-        body.prompt ||
-        "根据用户作品进行风格派倒推图生图。保留原图构图关系、重心、比例和空间节奏，生成阶段性推演图，绝对无文字。";
-      const imageBase64 = await editImage(body.imageBase64, prompt, title);
+      const title = body.title || "风格派倒推生成";
+      const prompt = body.prompt || "生成一张无文字的风格派倒推推演图。";
+      const imageBase64 =
+        body.mode === "quad"
+          ? await generateImage(prompt, title)
+          : await editImage(body.imageBase64, prompt, title);
       return sendOk(res, { title, imageBase64 });
     }
 
@@ -83,12 +84,10 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "POST" && req.url === "/api/test-image") {
       const body = await readBody(req);
-      const prompts = body.stagePrompts || {};
-      const prompt =
-        prompts.stage_2_structural_sketch ||
-        prompts.stage_1_representational_sketch ||
-        "请根据用户作品生成一张黑白结构草图，保留原图构图关系、重心、比例和方向，绝对无文字。";
-      const imageBase64 = await editImage(body.imageBase64, prompt, "图生图测试");
+      const imageBase64 = await generateImage(
+        "Generate a clean 2 by 2 De Stijl reverse-analysis worksheet. No text, no letters, no numbers.",
+        "四宫格测试",
+      );
       return sendOk(res, { imageCount: imageBase64 ? 1 : 0, model: imageModel });
     }
 
@@ -100,5 +99,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(port, () => {
   console.log(`Static app running at http://localhost:${port}`);
-  console.log("API provider: OpenAI image edits");
+  console.log("API provider: OpenAI image generations + edits");
 });

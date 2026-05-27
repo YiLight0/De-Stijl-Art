@@ -32,27 +32,10 @@ const reportClosing = document.querySelector("#reportClosing");
 
 const viewOrder = ["start", "learn", "input", "process", "result"];
 const stageMeta = [
-  {
-    key: "stage_2_structural_sketch",
-    title: "结构草图",
-    note: "抽出骨架、支撑、重心与空白",
-    fallbackPrompt:
-      "生成黑白结构性草图。请把输入图中的色块、线条、重心和空白转译为可能对象的骨架、支撑、连接关系和主要轮廓。不要写实，不要继续纯抽象，白色背景，铅笔或炭笔线稿，绝对不要出现文字。",
-  },
-  {
-    key: "stage_1_representational_sketch",
-    title: "具象素描",
-    note: "必须画出可识别的真实对象",
-    fallbackPrompt:
-      "生成一张具象素描。它必须是一个可识别的现实对象或场景，而不是抽象几何图。请根据输入图的色块、支撑、重心和方向恢复对象的外轮廓、体积、局部结构和少量明暗。保留原图构图关系，但要明显更具象、更像艺术家观察现实对象时的铅笔素描。禁止生成抽象构成、色块拼贴、几何海报或文字。",
-  },
-  {
-    key: "stage_realistic_candidate",
-    title: "写实候选",
-    note: "把相同构图线索转译成可能来源",
-    fallbackPrompt:
-      "生成一张可能来源的写实候选图像。必须保留输入图的主要构图逻辑：重心、比例、方向、左右疏密和空间节奏。将色块转译为真实对象的身体、结构、支撑、开口或局部部件。不要宣称唯一答案，只呈现一个视觉线索支持的候选。简洁背景，绝对不要出现文字。",
-  },
+  { key: "observation", title: "观察素描", note: "识别出的可能真实对象" },
+  { key: "analysis", title: "结构分析", note: "把对象拆成线、轴线和空间关系" },
+  { key: "simplification", title: "几何简化", note: "把对象压缩成几何体块和平面" },
+  { key: "abstraction", title: "风格派终稿", note: "接近用户输入的最终抽象构成" },
 ];
 
 let stream = null;
@@ -94,7 +77,7 @@ function setInputMode(mode) {
   modeCameraBtn.classList.toggle("active", mode === "camera");
   modeDrawBtn.classList.toggle("active", mode === "draw");
   document.body.classList.toggle("draw-active", mode === "draw");
-  setStatus(mode === "draw" ? "在方形画布上拖拽生成实心图形，然后点击“使用画作”。" : "摄像头模式：拍摄或上传一张方形作品。");
+  setStatus(mode === "draw" ? "在 4:3 横向画布上拖拽生成实心图形，然后点击“使用画作”。" : "摄像头模式：拍摄或上传一张 4:3 横向作品。");
   if (mode === "camera") startCamera();
 }
 
@@ -104,8 +87,8 @@ async function startCamera() {
     stream = await navigator.mediaDevices.getUserMedia({
       video: {
         width: { ideal: 1024 },
-        height: { ideal: 1024 },
-        aspectRatio: { ideal: 1 },
+        height: { ideal: 768 },
+        aspectRatio: { ideal: 1.333333 },
         facingMode: "environment",
       },
       audio: false,
@@ -123,20 +106,30 @@ function setSelectedImage(dataUrl) {
   setStatus("图片已准备好，可以开始生成。");
 }
 
-function imageToSquareDataUrl(source, size = 1024) {
+function imageToFourThreeDataUrl(source, width = 1024, height = 768) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
-      const side = Math.min(img.naturalWidth, img.naturalHeight);
-      const sx = (img.naturalWidth - side) / 2;
-      const sy = (img.naturalHeight - side) / 2;
+      const targetRatio = width / height;
+      const sourceRatio = img.naturalWidth / img.naturalHeight;
+      let sx = 0;
+      let sy = 0;
+      let sw = img.naturalWidth;
+      let sh = img.naturalHeight;
+      if (sourceRatio > targetRatio) {
+        sw = img.naturalHeight * targetRatio;
+        sx = (img.naturalWidth - sw) / 2;
+      } else {
+        sh = img.naturalWidth / targetRatio;
+        sy = (img.naturalHeight - sh) / 2;
+      }
       const canvas = document.createElement("canvas");
-      canvas.width = size;
-      canvas.height = size;
+      canvas.width = width;
+      canvas.height = height;
       const context = canvas.getContext("2d");
       context.fillStyle = "#f7fbfd";
-      context.fillRect(0, 0, size, size);
-      context.drawImage(img, sx, sy, side, side, 0, 0, size, size);
+      context.fillRect(0, 0, width, height);
+      context.drawImage(img, sx, sy, sw, sh, 0, 0, width, height);
       resolve(canvas.toDataURL("image/png"));
     };
     img.onerror = reject;
@@ -149,30 +142,32 @@ function fallbackSvg(variant) {
     ["#f7fbfd", "#111417", "#ef2c2f", "#0877c9", "#f0c929"],
     ["#edf5f8", "#111417", "#ef2c2f", "#0877c9", "#f0c929"],
     ["#dfeaf0", "#111417", "#ef2c2f", "#0877c9", "#f0c929"],
+    ["#f7fbfd", "#111417", "#ef2c2f", "#0877c9", "#f0c929"],
   ][variant] || ["#f7fbfd", "#111417", "#ef2c2f", "#0877c9", "#f0c929"];
   const [bg, ink, red, blue, yellow] = colors;
   return `data:image/svg+xml;utf8,${encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-      <rect width="1024" height="1024" fill="${bg}"/>
-      <rect x="120" y="110" width="58" height="760" fill="${ink}"/>
-      <rect x="120" y="370" width="790" height="58" fill="${ink}"/>
-      <rect x="440" y="110" width="42" height="760" fill="${ink}"/>
-      <rect x="536" y="150" width="260" height="240" fill="${blue}"/>
-      <rect x="210" y="520" width="210" height="160" fill="${red}"/>
-      <rect x="760" y="720" width="150" height="150" fill="${yellow}"/>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768">
+      <rect width="1024" height="768" fill="${bg}"/>
+      <rect x="118" y="94" width="52" height="548" fill="${ink}"/>
+      <rect x="118" y="284" width="784" height="46" fill="${ink}"/>
+      <rect x="420" y="94" width="32" height="548" fill="${ink}"/>
+      <rect x="520" y="138" width="258" height="186" fill="${blue}"/>
+      <rect x="196" y="410" width="190" height="132" fill="${red}"/>
+      <rect x="742" y="548" width="162" height="116" fill="${yellow}"/>
     </svg>
   `)}`;
 }
 
 function stageCards() {
-  const original = selectedImage ? [{ title: "用户作品", note: "输入的抽象终稿", imageBase64: selectedImage, pending: false }] : [];
+  if (generatedStages.length) return generatedStages;
+  const original = selectedImage ? [{ title: "用户作品", note: "输入的最终抽象图", imageBase64: selectedImage, pending: false }] : [];
   return [
     ...original,
-    ...stageMeta.map((meta, index) => ({
-      title: generatedStages[index]?.title || meta.title,
-      note: generatedStages[index] ? meta.note : "生成中",
-      imageBase64: generatedStages[index]?.imageBase64 || fallbackSvg(index),
-      pending: !generatedStages[index],
+    ...stageMeta.slice(original.length).map((meta, index) => ({
+      title: meta.title,
+      note: "等待四宫格生成",
+      imageBase64: fallbackSvg(index),
+      pending: true,
     })),
   ];
 }
@@ -303,39 +298,95 @@ async function postJson(url, body) {
   return data;
 }
 
-function promptForStage(meta) {
-  return analysisResult?.stagePrompts?.[meta.key] || meta.fallbackPrompt;
+function buildQuadPrompt(analysis) {
+  const sourceTypes = (analysis?.candidate_source_types || [])
+    .map((item) => `${item.type || item.candidate || "unknown"} ${item.reason || ""}`)
+    .join("; ");
+  const clues = (analysis?.reverse_clues || [])
+    .map((item) => `${item.visual_clue || ""} -> ${item.possible_meaning || ""}`)
+    .join("; ");
+  const palette = analysis?.formal_features?.color_palette?.join(", ") || "red, yellow, blue, black, white, gray";
+  const sentence = analysis?.semanticSentence || analysis?.shortComment || "a possible real object translated into De Stijl abstraction";
+
+  return `
+Create one single coherent 2x2 museum worksheet image showing the reverse process of an artist transforming a real object into a De Stijl abstraction.
+
+The user's uploaded image is the final abstract artwork. A vision model inferred these clues:
+- Possible source direction: ${sourceTypes || "unknown, infer a plausible object from composition"}
+- Visual clues: ${clues || "use block position, weight, supports, voids and direction"}
+- Palette and formal language: ${palette}
+- Summary: ${sentence}
+
+Generate four panels in a strict 2 by 2 grid with thin neutral dividers and no text:
+Top left panel: realistic observation sketch of the inferred real object or scene, pencil drawing, recognizable, no abstraction.
+Top right panel: analytical construction drawing of the same object, showing geometric axes, vertical supports, horizontal planes, structural guide lines, subtle red/black analysis lines.
+Bottom left panel: simplified geometric masses of the same object, muted blocks, reduced volume, early abstraction, still object-like.
+Bottom right panel: final De Stijl abstraction corresponding to the uploaded artwork, primary colors and neutrals, black vertical and horizontal bars, asymmetrical balance, matching the user's composition logic.
+
+The four panels must depict the same subject and the same composition evolving step by step. Do not create four unrelated images.
+Absolutely no words, no labels, no numbers, no captions, no signatures, no watermark, no UI.
+`;
 }
 
-async function generateStagesOneByOne() {
+function cropQuadrants(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const crops = [
+        [0, 0],
+        [img.naturalWidth / 2, 0],
+        [0, img.naturalHeight / 2],
+        [img.naturalWidth / 2, img.naturalHeight / 2],
+      ];
+      const width = img.naturalWidth / 2;
+      const height = img.naturalHeight / 2;
+      resolve(
+        crops.map(([sx, sy]) => {
+          const canvas = document.createElement("canvas");
+          canvas.width = 1024;
+          canvas.height = 768;
+          const context = canvas.getContext("2d");
+          context.fillStyle = "#f7fbfd";
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          context.drawImage(img, sx, sy, width, height, 0, 0, canvas.width, canvas.height);
+          return canvas.toDataURL("image/png");
+        }),
+      );
+    };
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+
+async function generateQuadOnce() {
   generatedStages = [];
   reportResult = null;
   setError("");
   renderStages();
+  setStatus("正在理解终稿，并生成四宫格推演图...");
 
-  for (let index = 0; index < stageMeta.length; index += 1) {
-    const meta = stageMeta[index];
-    setStatus(`正在图生图：${meta.title}`);
-    const result = await postJson("/api/generate-stage", {
-      title: meta.title,
-      prompt: promptForStage(meta),
-      imageBase64: selectedImage,
-    });
-    generatedStages[index] = result;
-    renderStages();
-    if (views.find((view) => view.dataset.view === "result")?.classList.contains("active")) {
-      renderResult();
-    }
-  }
+  const result = await postJson("/api/generate-stage", {
+    mode: "quad",
+    title: "风格派倒推四宫格",
+    prompt: buildQuadPrompt(analysisResult),
+  });
+  const quadrants = await cropQuadrants(result.imageBase64);
+  generatedStages = quadrants.map((imageBase64, index) => ({
+    ...stageMeta[index],
+    imageBase64,
+    pending: false,
+  }));
+  renderStages();
+  renderResult();
 
-  setStatus("三张图已生成完成，正在撰写作品分析报告。");
-  setView("result");
+  setStatus("四宫格已生成，正在撰写作品分析报告。");
   reportResult = await postJson("/api/report", {
     analysis: analysisResult,
-    stages: stageCards().map(({ title, note }) => ({ title, note })),
+    stages: generatedStages.map(({ title, note }) => ({ title, note })),
   });
+  setView("result");
   renderResult();
-  setStatus("图片与报告已生成完成。");
+  setStatus("四宫格与报告已生成完成。");
 }
 
 async function runApi() {
@@ -354,11 +405,11 @@ async function runApi() {
     setView("process");
     renderStages();
     analysisResult = await postJson("/api/analyze", { imageBase64: selectedImage });
-    await generateStagesOneByOne();
+    await generateQuadOnce();
   } catch (error) {
     const message = error instanceof Error ? error.message : "API 调用失败。";
     setStatus(message.split("\n")[0]);
-    setError(`生成失败\n\n${message}\n\n请检查：\n1. OPENAI_API_KEY 是否配置。\n2. 服务是否已重新部署。\n3. /api/analyze、/api/generate-stage、/api/report 是否返回 500 或超时。\n4. OpenAI 账户额度、项目权限或模型名是否可用。\n5. 图生图模型是否支持当前 OPENAI_IMAGE_SIZE。`);
+    setError(`生成失败\n\n${message}\n\n请检查：\n1. OPENAI_API_KEY 是否配置。\n2. 服务是否已重新部署。\n3. /api/analyze、/api/generate-stage、/api/report 是否返回 500 或超时。\n4. OpenAI 账户额度、项目权限或模型名是否可用。`);
     renderStages();
   } finally {
     runBtn.disabled = false;
@@ -373,7 +424,7 @@ function resetInput() {
   setError("");
   preview.removeAttribute("src");
   mediaBox.classList.remove("has-image");
-  setStatus("外层屏幕为 16:9，输入画面为方形。");
+  setStatus("外层屏幕为 16:9，输入画面为横向 4:3。");
   renderResult();
 }
 
@@ -382,14 +433,24 @@ function captureCamera() {
     setStatus("摄像头画面还没有准备好。");
     return;
   }
-  const side = Math.min(camera.videoWidth, camera.videoHeight);
-  const sx = (camera.videoWidth - side) / 2;
-  const sy = (camera.videoHeight - side) / 2;
+  const targetRatio = 4 / 3;
+  const sourceRatio = camera.videoWidth / camera.videoHeight;
+  let sx = 0;
+  let sy = 0;
+  let sw = camera.videoWidth;
+  let sh = camera.videoHeight;
+  if (sourceRatio > targetRatio) {
+    sw = camera.videoHeight * targetRatio;
+    sx = (camera.videoWidth - sw) / 2;
+  } else {
+    sh = camera.videoWidth / targetRatio;
+    sy = (camera.videoHeight - sh) / 2;
+  }
   const canvas = document.createElement("canvas");
   canvas.width = 1024;
-  canvas.height = 1024;
+  canvas.height = 768;
   const context = canvas.getContext("2d");
-  context.drawImage(camera, sx, sy, side, side, 0, 0, canvas.width, canvas.height);
+  context.drawImage(camera, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
   setSelectedImage(canvas.toDataURL("image/png"));
 }
 
@@ -415,7 +476,6 @@ function setupDrawing() {
     const width = Math.abs(to.x - from.x);
     const height = Math.abs(to.y - from.y);
     if (width < 3 || height < 3) return;
-
     ctx.fillStyle = brushColor;
     ctx.beginPath();
     if (activeShape === "circle") {
@@ -506,7 +566,7 @@ fileInput.addEventListener("change", () => {
   const reader = new FileReader();
   reader.onload = async () => {
     try {
-      setSelectedImage(await imageToSquareDataUrl(String(reader.result)));
+      setSelectedImage(await imageToFourThreeDataUrl(String(reader.result)));
     } catch {
       setSelectedImage(String(reader.result));
     }

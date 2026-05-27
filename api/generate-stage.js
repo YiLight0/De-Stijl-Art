@@ -1,4 +1,4 @@
-const { editImage, sendOk, sendError } = require("./_lib");
+const { editImage, generateImage, sendOk, sendError } = require("./_lib");
 
 module.exports = async function handler(req, res) {
   try {
@@ -8,13 +8,19 @@ module.exports = async function handler(req, res) {
     }
 
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
-    const title = body.title || "图生图倒推";
+    const title = body.title || "风格派倒推生成";
     const prompt =
       body.prompt ||
-      "根据用户作品进行风格派倒推图生图。保留原图构图关系、重心、比例和空间节奏，生成阶段性推演图，绝对无文字。";
+      "生成一张风格派倒推推演图，保持无文字、无字母、无数字、无标签。";
+
+    if (body.mode === "quad") {
+      const imageBase64 = await generateImage(prompt, title);
+      return sendOk(res, { title, imageBase64 });
+    }
+
     const imageBase64 = await editImage(body.imageBase64, prompt, title);
-    sendOk(res, { title, imageBase64 });
+    return sendOk(res, { title, imageBase64 });
   } catch (error) {
-    sendError(res, error);
+    return sendError(res, error);
   }
 };
