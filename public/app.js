@@ -32,10 +32,10 @@ const reportClosing = document.querySelector("#reportClosing");
 
 const viewOrder = ["start", "learn", "input", "process", "result"];
 const stageMeta = [
-  { key: "observation", title: "观察素描", note: "识别出的可能真实对象" },
-  { key: "analysis", title: "结构分析", note: "把对象拆成线、轴线和空间关系" },
-  { key: "simplification", title: "几何简化", note: "把对象压缩成几何体块和平面" },
-  { key: "abstraction", title: "风格派终稿", note: "接近用户输入的最终抽象构成" },
+  { key: "abstraction", title: "风格派终稿", note: "用户输入的最终抽象构成" },
+  { key: "simplification", title: "几何还原", note: "从色块中还原出对象体块" },
+  { key: "analysis", title: "结构分析", note: "继续倒推为骨架、轴线和支撑关系" },
+  { key: "observation", title: "观察素描", note: "最终回到可能的真实对象" },
 ];
 
 let stream = null;
@@ -309,21 +309,21 @@ function buildQuadPrompt(analysis) {
   const sentence = analysis?.semanticSentence || analysis?.shortComment || "a possible real object translated into De Stijl abstraction";
 
   return `
-Create one single coherent 2x2 museum worksheet image showing the reverse process of an artist transforming a real object into a De Stijl abstraction.
+Create one single coherent 2x2 museum worksheet image showing reverse reasoning from a De Stijl final artwork back to a possible original real object.
 
-The user's uploaded image is the final abstract artwork. A vision model inferred these clues:
+The user's uploaded image is already the final De Stijl abstraction, not the starting sketch. A vision model inferred these clues from that final artwork:
 - Possible source direction: ${sourceTypes || "unknown, infer a plausible object from composition"}
 - Visual clues: ${clues || "use block position, weight, supports, voids and direction"}
 - Palette and formal language: ${palette}
 - Summary: ${sentence}
 
 Generate four panels in a strict 2 by 2 grid with thin neutral dividers and no text:
-Top left panel: realistic observation sketch of the inferred real object or scene, pencil drawing, recognizable, no abstraction.
-Top right panel: analytical construction drawing of the same object, showing geometric axes, vertical supports, horizontal planes, structural guide lines, subtle red/black analysis lines.
-Bottom left panel: simplified geometric masses of the same object, muted blocks, reduced volume, early abstraction, still object-like.
-Bottom right panel: final De Stijl abstraction corresponding to the uploaded artwork, primary colors and neutrals, black vertical and horizontal bars, asymmetrical balance, matching the user's composition logic.
+Top left panel: the final De Stijl abstraction, matching the user's uploaded final artwork as closely as possible from the analysis: primary colors and neutrals, black vertical and horizontal bars, asymmetrical balance.
+Top right panel: geometric restoration, where the abstract color blocks begin to become object-like masses while still geometric and flat.
+Bottom left panel: structural analysis drawing of the inferred object, showing axes, supports, joints, main silhouette and construction lines.
+Bottom right panel: realistic observation sketch of the possible original real object or scene, pencil drawing, recognizable, no abstraction.
 
-The four panels must depict the same subject and the same composition evolving step by step. Do not create four unrelated images.
+The four panels must depict the same subject and composition moving backward step by step from final abstraction to possible origin. Do not create four unrelated images.
 Absolutely no words, no labels, no numbers, no captions, no signatures, no watermark, no UI.
 `;
 }
