@@ -861,7 +861,7 @@ body.draw-active .draw-controls {
 
 .swatches {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 6px;
 }
 
@@ -877,17 +877,24 @@ body.draw-active .draw-controls {
   outline-offset: 2px;
 }
 
-.size-control {
+.shape-tools {
   display: grid;
-  gap: 5px;
-  color: var(--ink);
-  font-size: 0.78rem;
-  font-weight: 950;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
 }
 
-.size-control input {
-  width: 100%;
-  accent-color: var(--blue);
+.shape-btn {
+  min-height: 34px;
+  border: 3px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.76rem;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.shape-btn.active {
+  background: var(--yellow);
 }
 
 .stage-grid {

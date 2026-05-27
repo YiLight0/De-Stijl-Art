@@ -11,9 +11,8 @@ const useDrawingBtn = document.querySelector("#useDrawingBtn");
 const modeCameraBtn = document.querySelector("#modeCameraBtn");
 const modeDrawBtn = document.querySelector("#modeDrawBtn");
 const drawCanvas = document.querySelector("#drawCanvas");
-const brushSize = document.querySelector("#brushSize");
-const eraserBtn = document.querySelector("#eraserBtn");
 const colorSwatches = document.querySelector("#colorSwatches");
+const shapeTools = document.querySelector("#shapeTools");
 const fileInput = document.querySelector("#fileInput");
 const statusText = document.querySelector("#statusText");
 const stageGrid = document.querySelector("#stageGrid");
@@ -64,7 +63,9 @@ let reportResult = null;
 let generatedStages = [];
 let drawing = false;
 let brushColor = "#111417";
-let erasing = false;
+let activeShape = "rect";
+let dragStart = null;
+let dragSnapshot = null;
 
 function setStatus(text) {
   statusText.textContent = text;
@@ -93,7 +94,7 @@ function setInputMode(mode) {
   modeCameraBtn.classList.toggle("active", mode === "camera");
   modeDrawBtn.classList.toggle("active", mode === "draw");
   document.body.classList.toggle("draw-active", mode === "draw");
-  setStatus(mode === "draw" ? "在方形画布上画一张抽象作品，然后点击“使用画作”。" : "摄像头模式：拍摄或上传一张方形作品。");
+  setStatus(mode === "draw" ? "在方形画布上拖拽生成实心图形，然后点击“使用画作”。" : "摄像头模式：拍摄或上传一张方形作品。");
   if (mode === "camera") startCamera();
 }
 
@@ -394,17 +395,9 @@ function captureCamera() {
 
 function setupDrawing() {
   const ctx = drawCanvas.getContext("2d");
-  function applyBrush() {
-    ctx.lineWidth = Number(brushSize?.value || 22);
-    ctx.lineCap = "square";
-    ctx.lineJoin = "miter";
-    ctx.strokeStyle = erasing ? "#f7fbfd" : brushColor;
-  }
-
   function clear() {
     ctx.fillStyle = "#f7fbfd";
     ctx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
-    applyBrush();
   }
 
   function point(event) {
@@ -416,21 +409,61 @@ function setupDrawing() {
     };
   }
 
+  function drawShape(from, to) {
+    const x = Math.min(from.x, to.x);
+    const y = Math.min(from.y, to.y);
+    const width = Math.abs(to.x - from.x);
+    const height = Math.abs(to.y - from.y);
+    if (width < 3 || height < 3) return;
+
+    ctx.fillStyle = brushColor;
+    ctx.beginPath();
+    if (activeShape === "circle") {
+      ctx.ellipse(x + width / 2, y + height / 2, width / 2, height / 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      return;
+    }
+    if (activeShape === "triangle") {
+      ctx.moveTo(x + width / 2, y);
+      ctx.lineTo(x + width, y + height);
+      ctx.lineTo(x, y + height);
+      ctx.closePath();
+      ctx.fill();
+      return;
+    }
+    if (activeShape === "semicircle") {
+      ctx.moveTo(x, y + height);
+      ctx.ellipse(x + width / 2, y + height, width / 2, height, 0, Math.PI, 0);
+      ctx.closePath();
+      ctx.fill();
+      return;
+    }
+    ctx.fillRect(x, y, width, height);
+  }
+
   function begin(event) {
     drawing = true;
-    applyBrush();
-    const p = point(event);
-    ctx.beginPath();
-    ctx.moveTo(p.x, p.y);
+    dragStart = point(event);
+    dragSnapshot = ctx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
     event.preventDefault();
   }
 
   function move(event) {
-    if (!drawing) return;
-    const p = point(event);
-    ctx.lineTo(p.x, p.y);
-    ctx.stroke();
+    if (!drawing || !dragStart || !dragSnapshot) return;
+    ctx.putImageData(dragSnapshot, 0, 0);
+    drawShape(dragStart, point(event));
     event.preventDefault();
+  }
+
+  function end(event) {
+    if (!drawing) return;
+    if (dragSnapshot) {
+      ctx.putImageData(dragSnapshot, 0, 0);
+      drawShape(dragStart, point(event));
+    }
+    drawing = false;
+    dragStart = null;
+    dragSnapshot = null;
   }
 
   clear();
@@ -438,22 +471,17 @@ function setupDrawing() {
     const button = event.target.closest("[data-color]");
     if (!button) return;
     brushColor = button.dataset.color;
-    erasing = false;
-    eraserBtn?.classList.remove("active");
     colorSwatches.querySelectorAll(".swatch").forEach((item) => item.classList.toggle("active", item === button));
-    applyBrush();
   });
-  brushSize?.addEventListener("input", applyBrush);
-  eraserBtn?.addEventListener("click", () => {
-    erasing = !erasing;
-    eraserBtn.classList.toggle("active", erasing);
-    applyBrush();
+  shapeTools?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-shape]");
+    if (!button) return;
+    activeShape = button.dataset.shape;
+    shapeTools.querySelectorAll(".shape-btn").forEach((item) => item.classList.toggle("active", item === button));
   });
   drawCanvas.addEventListener("pointerdown", begin);
   drawCanvas.addEventListener("pointermove", move);
-  window.addEventListener("pointerup", () => {
-    drawing = false;
-  });
+  window.addEventListener("pointerup", end);
   clearCanvasBtn.addEventListener("click", () => {
     clear();
     setStatus("画布已清空。");

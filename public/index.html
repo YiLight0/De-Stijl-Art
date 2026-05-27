@@ -151,9 +151,14 @@
                   <button type="button" class="swatch" data-color="#f0c929" style="--swatch:#f0c929" aria-label="黄色"></button>
                   <button type="button" class="swatch" data-color="#0877c9" style="--swatch:#0877c9" aria-label="蓝色"></button>
                   <button type="button" class="swatch" data-color="#f7fbfd" style="--swatch:#f7fbfd" aria-label="白色"></button>
+                  <button type="button" class="swatch" data-color="#8b949b" style="--swatch:#8b949b" aria-label="灰色"></button>
                 </div>
-                <label class="size-control">笔刷 <input id="brushSize" type="range" min="6" max="54" value="22" /></label>
-                <button class="btn secondary" id="eraserBtn" type="button">橡皮</button>
+                <div class="shape-tools" id="shapeTools" aria-label="形状工具">
+                  <button type="button" class="shape-btn active" data-shape="rect">矩形</button>
+                  <button type="button" class="shape-btn" data-shape="circle">圆形</button>
+                  <button type="button" class="shape-btn" data-shape="triangle">三角</button>
+                  <button type="button" class="shape-btn" data-shape="semicircle">半圆</button>
+                </div>
               </div>
               <button class="btn secondary draw-tool" id="clearCanvasBtn">清空画布</button>
               <button class="btn primary draw-tool" id="useDrawingBtn">使用画作</button>
